@@ -1,0 +1,16 @@
+# values.yaml
+replicaCount: 1
+name: DataProductManager
+dockerConfigJson: |
+  {
+    "auths": {
+      "registry.gitlab.aeros-project.eu": {
+        "username": "project_65_bot_30cb0556c5d561c94459227ce8c18168",
+        "password": "glpat-S247U1KuYykMWwwgwKqx"
+      }
+    }
+  }
+image:
+  repository: registry.gitlab.aeros-project.eu/aeros-public/common-deployments/data-fabric/data-product-manager
+  tag: latest
+  pullPolicy: IfNotPresent
