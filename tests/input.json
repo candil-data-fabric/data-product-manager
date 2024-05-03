@@ -1,0 +1,13 @@
+{ 
+  "domain_id": "1",
+  "owner_id": "2",
+  "developer_id": "3",
+  "data_source": "batch",
+  "freshness": "* * * * *",
+  "data_source_type": "data_file",
+  "mappings": "config/files/mapping_file.rml.ttl",
+  "db_url": "",
+  "file_path": "https://raw.githubusercontent.com/LuciaCabanillasRodriguez/batchFile/main/file.csv",
+  "policy": "read"
+}
+
