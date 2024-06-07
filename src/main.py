@@ -134,17 +134,8 @@ def create_helm_release(api_instance, name, namespace, chart_name, chart_version
                 "morph_kgc_config": "config/"+configuration,
                 "configmap_config": name_configmap_config,
                 "configmap_mapping": name_configmap_mapping,
-                "dockerConfigJson": 
-                {
-                    "auths": {
-                    "registry.gitlab.aeros-project.eu": {
-                        "username": "project_65_bot_30cb0556c5d561c94459227ce8c18168",
-                        "password": "glpat-S247U1KuYykMWwwgwKqx"
-                    }
-                    }
-                },
                 "image":{
-                    "repository": "registry.gitlab.aeros-project.eu/aeros-public/common-deployments/data-fabric/morph-kgc"
+                    "repository": "ghcr.io/candil-data-fabric/morph-kgc"
                 },
                 "cronJob": {
                     "enabled": True if freshness is not None else False,

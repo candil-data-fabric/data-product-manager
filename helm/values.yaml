@@ -2,6 +2,6 @@
 replicaCount: 1
 name: DataProductManager
 image:
-  repository: registry.gitlab.aeros-project.eu/aeros-public/common-deployments/data-fabric/data-product-manager
+  repository: data-product-manager
   tag: latest
   pullPolicy: IfNotPresent
