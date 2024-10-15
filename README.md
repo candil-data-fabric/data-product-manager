@@ -98,8 +98,8 @@ When creating batch data products, the Data Product Manager will orchestrate the
 
 For further details, the API documentation of the Data Product Manager can be found at:
 
-- http://<host>:<port>/docs
-- http://<host>:<port>/redoc
+- `http://<host>:<port>/docs`
+- `http://<host>:<port>/redoc`
 
 To check the host and port of the Data Product Manager API, issue the following command after the deployment:
 
