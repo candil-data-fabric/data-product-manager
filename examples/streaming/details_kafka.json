@@ -1,0 +1,12 @@
+{
+  "details": {
+    "name": "Test",
+    "description": "Test streaming source data product",
+    "tags": ["test", "streaming"],
+    "input_format": "XML",
+    "input_topic": "seaman-input",
+    "data_source_type": "STREAMING_KAFKA",
+    "host": "kafka.default.svc.cluster.local",
+    "port": 9092
+  }
+}

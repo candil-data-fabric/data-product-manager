@@ -1,7 +1,0 @@
-# values.yaml
-replicaCount: 1
-name: DataProductManager
-image:
-  repository: data-product-manager
-  tag: latest
-  pullPolicy: IfNotPresent
