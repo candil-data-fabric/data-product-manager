@@ -1,10 +1,18 @@
 # syntax=docker/dockerfile:1
 # Keep this syntax directive! It's used to enable Docker BuildKit
 
+# Data Product Manager - Dockerfile.
+
 # Based on https://github.com/python-poetry/poetry/discussions/1879?sort=top#discussioncomment-216865
 # Extended by https://gist.github.com/usr-ein/c42d98abca3cb4632ab0c2c6aff8c88a
 
+# The base image is Python 3.9-slim.
 FROM python:3.9-slim as python-base
+
+# Some labels are defined to store metadata.
+LABEL image_version="2.1.0"
+LABEL app_version="2.1.0"
+LABEL maintainer="Lucía Cabanillas Rodríguez, David Martínez García"
 
     # python
 ENV PYTHONUNBUFFERED=1 \
@@ -67,7 +75,7 @@ RUN --mount=type=cache,target=/root/.cache \
 FROM python-base as production
 ENV FASTAPI_ENV=production
 COPY --from=builder-base $PYSETUP_PATH $PYSETUP_PATH
-COPY ./src /app
+COPY ./data_product_manager /app
 WORKDIR /app
 EXPOSE 8000
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--log-config", "config/log.yaml"]

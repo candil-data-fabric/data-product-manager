@@ -1,0 +1,24 @@
+name: Synchronization with GitLab Repository
+
+on:
+  - push
+  - delete
+
+jobs:
+  gitlab-synchronization:
+    runs-on: ubuntu-latest
+    name: Synchronization with GitLab Repository
+    steps:
+    # Checkout repository:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    # Synchronize GitHub repository with GitLab repository (GitHub is upstream repository)
+    - name: Synchronize GitHub repository with GitLab repository (GitHub is upstream repository)
+      uses: wangchucheng/git-repo-sync@v0.1.0
+      with:
+        target-url: ${{ secrets.TARGET_URL }}
+        target-username: ${{ secrets.TARGET_USERNAME }}
+        target-token: ${{ secrets.TARGET_TOKEN }}

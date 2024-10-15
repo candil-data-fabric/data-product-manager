@@ -1,0 +1,13 @@
+{
+    "details": {
+        "name": "Test",
+        "description": "Test streaming source data product",
+        "tags": ["test", "streaming"],
+        "input_format": "XML",
+        "input_topic": "seaman/input",
+        "data_source_type": "STREAMING_MQTT",
+        "host": "mosquitto.default.svc.cluster.local",
+        "port": 1883,
+        "protocol": "tcp"
+    }
+}
