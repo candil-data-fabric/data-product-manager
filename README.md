@@ -83,8 +83,8 @@ Streaming Data Products are generated in real-time as data flows continuously fr
 - **Protocol**: Protocol that must be used for the communication with the MQTT broker. Expected values are `tcp` or `udp`.
 
 ## Current versions:
-- **Data Product Manager application**: 2.1.0 (October 15th, 2024).
-- **Dockerfile**: 2.1.0 (October 15th, 2024).
+- **Data Product Manager application**: 2.2.0 (November 4th, 2024).
+- **Dockerfile**: 2.2.0 (November 4th, 2024).
 
 ## Data Product Manager Deployment
 
@@ -166,7 +166,7 @@ Once done, click on `Execute` to onboard the Data Product.
 When sending an HTTP POST request, use the following command as template:
 
 ```shell
-curl -X 'POST' 'http://localhost:<port>/dataProduct' \
+curl -X 'POST' 'http://localhost:<port>/dataProducts' \
    -H 'accept: application/json' \
    -H 'Content-Type: multipart/form-data' \
    -F 'data_source={
@@ -211,7 +211,7 @@ Once done, click on `Execute` to onboard the Data Product.
 When sending an HTTP POST request, use the following command as template:
 
 ```shell
-curl -X 'POST' 'http://localhost:<port>/dataProduct' \
+curl -X 'POST' 'http://localhost:<port>/dataProducts' \
    -H 'accept: application/json' \
    -H 'Content-Type: multipart/form-data' \
    -F 'data_source={
@@ -259,7 +259,7 @@ Once done, click on `Execute` to onboard the Data Product.
 When sending an HTTP POST request, use the following command as template:
 
 ```shell
-curl -X 'POST' 'http://localhost:<port>/dataProduct' \
+curl -X 'POST' 'http://localhost:<port>/dataProducts' \
    -H 'accept: application/json' \
    -H 'Content-Type: multipart/form-data' \
    -F 'data_source={
@@ -310,7 +310,7 @@ Once done, click on `Execute` to onboard the Data Product.
 When sending an HTTP POST request, use the following command as template:
 
 ```shell
-curl -X 'POST' 'http://localhost:<port>/dataProduct' \
+curl -X 'POST' 'http://localhost:<port>/dataProducts' \
    -H 'accept: application/json' \
    -H 'Content-Type: multipart/form-data' \
    -F 'data_source={

@@ -1,5 +1,5 @@
 __name__ = "Data Product Manager"
-__version__ = "2.1.0"
+__version__ = "2.2.0"
 __author__ = [
     "Lucía Cabanillas Rodríguez",
     "David Martínez García"
@@ -40,9 +40,10 @@ import uuid
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
-    format='%(asctime)s %(levelname)-8s %(message)s',
-    level=logging.DEBUG,
-    datefmt='%Y-%m-%d %H:%M:%S')
+    format = '%(asctime)s %(levelname)-8s %(message)s',
+    level = logging.DEBUG,
+    datefmt = '%Y-%m-%d %H:%M:%S'
+)
 
 ## -- END LOGGING CONFIGURATION -- ##
 
@@ -101,55 +102,49 @@ MONGO_DB_URI = os.getenv("MONGO_DB_URI")
 
 class BatchDataSource(BaseModel):
     '''
-    Pydantic model: BatchDataSource.
-
     Base model for any batch data source.
     '''
 
     name: str = Field(
-        default=None,
-        description="Name of the batch data source."
+        default = None,
+        description = "Name of the batch data source."
     )
     description: str = Field(
-        default=None,
-        description="Description of the batch data source."
+        default = None,
+        description = "Description of the batch data source."
     )
     tags: list[str] = Field(
-        default=None,
-        description="List of tags that identify the batch data source."
+        default = None,
+        description = "List of tags that identify the batch data source."
     )
     freshness: str = Field(
-        default=None,
-        description="Only supported for data sources of batch type. It determines how frequently the Data Fabric collects raw data from the target data source.")
+        default = None,
+        description = "Only supported for data sources of batch type. It determines how frequently the Data Fabric collects raw data from the target data source.")
 
 class StreamingDataSource(BaseModel):
     '''
-    Pydantic model: StreamingDataSource.
-
     Base model for any streaming data source.
     '''
 
     name: str = Field(
-        default=None,
-        description="Name of the streaming data source."
+        default = None,
+        description = "Name of the streaming data source."
     )
     description: str = Field(
-        default=None,
-        description="Description of the streaming data source."
+        default = None,
+        description = "Description of the streaming data source."
     )
     tags: list[str] = Field(
-        default=None,
-        description="List of tags that identify the streaming data source."
+        default = None,
+        description = "List of tags that identify the streaming data source."
     )
     input_format: Union[
         Literal["JSON"], Literal["XML"], Literal["CSV"]
-    ] = Field(description="Input data format of the streaming data source.")
-    input_topic: str = Field(description="Name of the input topic.")
+    ] = Field(description = "Input data format of the streaming data source.")
+    input_topic: str = Field(description = "Name of the input topic.")
 
 class RelationalDatabaseDataSource(BatchDataSource):
     '''
-    Pydantic model: RelationalDatabaseDataSource.
-
     Specific model for a relational database data source (batch data source).
     '''
 
@@ -158,8 +153,6 @@ class RelationalDatabaseDataSource(BatchDataSource):
 
 class FileDataSource(BatchDataSource):
     '''
-    Pydantic model: FileDataSource.
-
     Specific model for a file data source (batch data source).
     '''
 
@@ -168,35 +161,29 @@ class FileDataSource(BatchDataSource):
 
 class KafkaDataSource(StreamingDataSource):
     '''
-    Pydantic model: KafkaDataSource.
-
     Specific model for a Kafka data source (streaming data source).
     '''
 
     data_source_type: Literal["STREAMING_KAFKA"]
-    host: str = Field(description="Hostname, FQDN or IP address where the Kafka broker is reachable.")
-    port: int = Field(description="Port number where the Kafka broker is reachable.")
-    group_id: str = Field(default=None, description="Kafka group ID.")
+    host: str = Field(description = "Hostname, FQDN or IP address where the Kafka broker is reachable.")
+    port: int = Field(description = "Port number where the Kafka broker is reachable.")
+    group_id: str = Field(default = None, description = "Kafka group ID.")
 
 class MqttDataSource(StreamingDataSource):
     '''
-    Pydantic model: MqttDataSource.
-
     Specific model for a MQTT data source (streaming data source).
     '''
 
     data_source_type: Literal["STREAMING_MQTT"]
-    protocol: str = Field(description="Protocol name used by the MQTT broker.")
-    host: str = Field(description="Hostname, FQDN or IP address where the MQTT broker is reachable.")
-    port: int = Field(description="Port number where the MQTT broker is reachable.")
-    client_id: str = Field(default=None, description="Client ID to use with the MQTT broker.")
-    user: str = Field(default=None, description="Username to use for authentication with the MQTT broker.")
-    password: str = Field(default=None, description="Password to use for authentication with the MQTT broker.")
+    protocol: str = Field(description = "Protocol name used by the MQTT broker.")
+    host: str = Field(description = "Hostname, FQDN or IP address where the MQTT broker is reachable.")
+    port: int = Field(description = "Port number where the MQTT broker is reachable.")
+    client_id: str = Field(default = None, description = "Client ID to use with the MQTT broker.")
+    user: str = Field(default = None, description = "Username to use for authentication with the MQTT broker.")
+    password: str = Field(default = None, description = "Password to use for authentication with the MQTT broker.")
 
 class DataSource(BaseModel):
     '''
-    Pydantic model: DataSource.
-
     Base model for any data source.
     '''
 
@@ -254,7 +241,7 @@ def create_helm_repository(api_instance: kubernetes.client.CoreV1Api, name: str,
 
     ONLY FOR BATCH DATA SOURCES.
 
-    It creates a HelmRepository within the FluxCD system.
+    It creates the HelmRepository within the FluxCD system for deploying Morph-KGC jobs/instances.
     '''
 
     body = {
@@ -282,7 +269,7 @@ def create_helm_repository(api_instance: kubernetes.client.CoreV1Api, name: str,
         )
         logger.info("HelmRepository '{0}' created successfully.".format(name))
     except Exception as e:
-        logger.warning("HelmRepository '{0}': {1} already created".format(name, e))
+        logger.warning("HelmRepository '{0}': {1} already created.".format(name, e))
 
 def create_helm_release(
         api_instance: kubernetes.client.CoreV1Api,
@@ -303,7 +290,7 @@ def create_helm_release(
 
     ONLY FOR BATCH DATA SOURCES.
 
-    It creates a HelmRelease to deploy Morph-KGC using the FluxCD system.
+    It creates a HelmRelease within the FluxCD system for deploying a Morph-KGC job/instance.
     '''
 
     body = {
@@ -353,12 +340,39 @@ def create_helm_release(
         )
         logger.info(f"HelmRelease '{name}' created successfully.")
     except Exception as e:
-        logger.info(f"Error creating HelmRelease '{name}': {e}")
+        logger.info(f"Error creating HelmRelease '{name}': {e}.")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Exception while trying to create HelmRelease '{name}': {e}")
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail = f"Exception while trying to create HelmRelease '{name}': {e}.")
     
     return api_response
+
+def delete_helm_repository(api_instance: kubernetes.client.CoreV1Api, name: str, namespace: str) -> None:
+    '''
+    Auxiliary function: delete_helm_repository.
+
+    ONLY FOR BATCH DATA SOURCES.
+
+    It deletes the HelmRepository within the FluxCD system for deploying Morph-KGC jobs/instances.
+    '''
+
+    custom_api_instance = CustomObjectsApi(api_instance.api_client)
+
+    try:
+        custom_api_instance.delete_namespaced_custom_object(
+            group = "source.toolkit.fluxcd.io",
+            version = "v1",
+            namespace = namespace,
+            plural = "helmrepositories",
+            name = name
+        )
+        logger.info(f"HelmRepository '{name}' deleted successfully.")
+    except Exception as e:
+        logger.info(f"Error deleting HelmRepository '{name}': {e}.")
+        raise HTTPException(
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail = f"Exception while trying to delete HelmRepository '{name}': {e}."
+        )
 
 def delete_helm_release(api_instance: kubernetes.client.CoreV1Api, name: str, namespace: str) -> None:
     '''
@@ -366,26 +380,26 @@ def delete_helm_release(api_instance: kubernetes.client.CoreV1Api, name: str, na
 
     ONLY FOR BATCH DATA SOURCES.
 
-    It deletes a HelmRelease for Morph-KGC within the FluxCD system.
-    This function is the equivalent as deleting a batch source data product.
+    It deletes a HelmRelease within the FluxCD system for deploying a Morph-KGC job/instance.
     '''
 
     custom_api_instance = CustomObjectsApi(api_instance.api_client)
 
     try:
         custom_api_instance.delete_namespaced_custom_object(
-            group="helm.toolkit.fluxcd.io",
-            version="v2",
-            namespace=namespace,
-            plural="helmreleases",
-            name=name
+            group = "helm.toolkit.fluxcd.io",
+            version = "v2",
+            namespace = namespace,
+            plural = "helmreleases",
+            name = name
         )
         logger.info(f"HelmRelease '{name}' deleted successfully.")
     except Exception as e:
-        logger.info(f"Error deleting HelmRelease '{name}': {e}")
+        logger.info(f"Error deleting HelmRelease '{name}': {e}.")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Exception while trying to delete HelmRelease '{name}': {e}")
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail = f"Exception while trying to delete HelmRelease '{name}': {e}."
+        )
 
 def onboard_batch_data_product(data_source: DataSource, mappings_file: UploadFile, mappings_content: bytes, data_product: dict) -> dict:
     '''
@@ -399,11 +413,11 @@ def onboard_batch_data_product(data_source: DataSource, mappings_file: UploadFil
     '''
 
     if data_source.details.freshness:
-            try:
-                # Check if freshness schedule format is valid (crontab/cronjob format).
-                croniter(data_source.details.freshness)
-            except ValueError:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid crontab/cronjob format for freshness.")
+        try:
+            # Check if freshness schedule format is valid (crontab/cronjob format).
+            croniter(data_source.details.freshness)
+        except ValueError:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid crontab/cronjob format for freshness.")
 
     configmap_mappings_name = "data-fabric-morph-kgc-configmap-mappings-" + data_source.details.name
     configmap_config_name = "data-fabric-morph-kgc-configmap-config-" + data_source.details.name
@@ -421,38 +435,38 @@ def onboard_batch_data_product(data_source: DataSource, mappings_file: UploadFil
         config_content = file.read()
     
     k8s_configmap_mappings_body = kubernetes.client.V1ConfigMap(
-        metadata=kubernetes.client.V1ObjectMeta(name=configmap_mappings_name),
-        data={
+        metadata = kubernetes.client.V1ObjectMeta(name = configmap_mappings_name),
+        data = {
             mappings_file_name: mappings_content.decode("utf-8")
         }
     )
 
     k8s_configmap_config_body = kubernetes.client.V1ConfigMap(
-        metadata=kubernetes.client.V1ObjectMeta(name=configmap_config_name),
-        data={
+        metadata = kubernetes.client.V1ObjectMeta(name=configmap_config_name),
+        data = {
             config_file_name: config_content
         }
     )
 
     try:
         k8s_client.create_namespaced_config_map(
-            KUBERNETES_NAMESPACE, k8s_configmap_mappings_body, field_validation="Ignore"
+            KUBERNETES_NAMESPACE, k8s_configmap_mappings_body, field_validation = "Ignore"
         )
     except ApiException as e:
-        logger.warning("Exception when calling CoreV1Api->create_namespaced_config_map: {0}\n".format(e))
+        logger.warning("Exception when calling CoreV1Api->create_namespaced_config_map: {0}.".format(e))
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Exception while calling internal Kubernetes API: CoreV1Api->create_namespaced_config_map: {0}".format(e))
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail = "Exception while calling internal Kubernetes API: CoreV1Api->create_namespaced_config_map: {0}.".format(e))
     
     try:
         k8s_client.create_namespaced_config_map(
             KUBERNETES_NAMESPACE, k8s_configmap_config_body, field_validation="Ignore"
         )
     except ApiException as e:
-        logger.warning("Exception when calling CoreV1Api->create_namespaced_config_map: {0}\n".format(e))
+        logger.warning("Exception when calling CoreV1Api->create_namespaced_config_map: {0}.".format(e))
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Exception while calling internal Kubernetes API: CoreV1Api->create_namespaced_config_map: {0}".format(e))
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail = "Exception while calling internal Kubernetes API: CoreV1Api->create_namespaced_config_map: {0}.".format(e))
     
     api_response = create_helm_release(
         k8s_client, "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source.details.name, KUBERNETES_NAMESPACE,
@@ -573,15 +587,15 @@ def onboard_streaming_data_product(data_source: DataSource, mappings_content: by
         body["status"]["errorTopicEnabled"] = False
     
     response = requests.post(
-        url=SEMANTIC_ANNOTATOR_URI + "channels",
-        json=body,
-        headers={
+        url = SEMANTIC_ANNOTATOR_URI + "channels",
+        json = body,
+        headers = {
             "accept": "text/plain",
             "Content-Type": "application/json"
         }
     )
     if response.status_code != status.HTTP_200_OK:
-        raise HTTPException(status_code=response.status_code, detail=response.text)
+        raise HTTPException(status_code = response.status_code, detail = response.text)
     
     data_product["details"] = body
     data_product["creationTimestamp"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
@@ -600,13 +614,13 @@ def delete_streaming_data_product(data_product_id: str) -> None:
     '''
 
     response = requests.delete(
-        url=SEMANTIC_ANNOTATOR_URI + "channels" + "/" + data_product_id,
-        headers={
+        url = SEMANTIC_ANNOTATOR_URI + "channels" + "/" + data_product_id,
+        headers = {
             "accept": "text/plain"
         }
     )
     if response.status_code != status.HTTP_200_OK:
-        raise HTTPException(status_code=response.status_code, detail=response.text)
+        raise HTTPException(status_code = response.status_code, detail = response.text)
 
 ## -- END DEFINITION OF AUXILIARY FUNCTIONS -- ##
 
@@ -631,6 +645,9 @@ async def lifespan(app: FastAPI):
 
     logger.info("Application started")
 
+    # Create HelmRepository resource:
+    create_helm_repository(k8s_client, HELM_REPO_NAME, KUBERNETES_NAMESPACE, HELM_REPO_URL)
+
     # -- END STARTUP -- #
 
     yield
@@ -646,24 +663,23 @@ async def lifespan(app: FastAPI):
             elif "STREAMING" in data_product["data_source_type"]:
                 delete_streaming_data_product(data_product["_id"])
         mongodb_collection.delete_many({})
+    delete_helm_repository(k8s_client, HELM_REPO_NAME, KUBERNETES_NAMESPACE)
+    
     logger.info("Application finished")
 
     # -- END SHUTDOWN -- #
 
-# Create HelmRepository resource:
-create_helm_repository(k8s_client, HELM_REPO_NAME, KUBERNETES_NAMESPACE, HELM_REPO_URL)
-
 # Start FastAPI server:
 app = FastAPI(
-    lifespan=lifespan,
-    title=__name__ + " - REST API",
-    version=__version__
+    lifespan = lifespan,
+    title = __name__ + " - REST API",
+    version = __version__
 )
 
 @app.get(
-        path="/dataProducts",
-        description="Retrieve all data products.",
-        tags=["Read"]
+        path = "/dataProducts",
+        description = "Retrieve all data products.",
+        tags = ["Read"]
 )
 async def get_data_products(request: Request):
     '''
@@ -676,9 +692,9 @@ async def get_data_products(request: Request):
 
     data_products = list(mongodb_collection.find())
     if len(data_products) == 0:
-        return Response(status_code=status.HTTP_204_NO_CONTENT)
+        return Response(status_code = status.HTTP_204_NO_CONTENT)
     else:
-        return JSONResponse(status_code=status.HTTP_200_OK, content=data_products)
+        return JSONResponse(status_code = status.HTTP_200_OK, content = data_products)
 
 @app.get(
         path="/dataProducts/{data_product_id}", 
@@ -691,18 +707,18 @@ async def get_data_product(request: Request, data_product_id: str):
     '''
     
     print("\n")
-    logger.info("Received GET request to access /dataProduct resource from " + request.client.host + ":" + str(request.client.port))
+    logger.info("Received GET request to access /dataProducts resource from " + request.client.host + ":" + str(request.client.port))
     logger.info("Request is for retrieving the Data Product with ID: " + data_product_id)
 
     data_product = list(mongodb_collection.find({"_id": data_product_id}))
     if len(data_product) == 0:
-        return Response(status_code=status.HTTP_204_NO_CONTENT)
+        return Response(status_code = status.HTTP_204_NO_CONTENT)
     else:
-        return JSONResponse(status_code=status.HTTP_200_OK, content=data_product[0])
+        return JSONResponse(status_code = status.HTTP_200_OK, content = data_product[0])
 
 @app.post(
-        path="/dataProduct",
-        description="Onboard data product. Mappings file can be RML or YARRRML for batch data sources and MUST BE CARML for streaming data sources.",
+        path="/dataProducts",
+        description="Onboard single data product. Mappings file can be RML or YARRRML for batch data sources and MUST BE CARML for streaming data sources.",
         tags=["Create"]
 )
 async def post_data_product(
@@ -715,7 +731,7 @@ async def post_data_product(
     '''
 
     print("\n")
-    logger.info("Received POST request to access /dataProduct resource from " + request.client.host + ":" + str(request.client.port))
+    logger.info("Received POST request to access /dataProducts resource from " + request.client.host + ":" + str(request.client.port))
     logger.info("Request is for onboarding a new Data Product")
     logger.info("Data Product details:")
     logger.info(data_source.model_dump_json(indent=4))
@@ -748,7 +764,7 @@ async def post_data_product(
 
     mongodb_collection.insert_one(data_product)
 
-    return JSONResponse(status_code=status.HTTP_201_CREATED, content={"message": "Data product onboarded successfully.", "data_product": data_product})
+    return JSONResponse(status_code = status.HTTP_201_CREATED, content = {"message": "Data product onboarded successfully.", "data_product": data_product})
 
 @app.delete(
         path="/dataProducts",
@@ -766,7 +782,7 @@ async def delete_data_products(request: Request):
 
     data_products = list(mongodb_collection.find())
     if len(data_products) == 0:
-        return Response(status_code=status.HTTP_204_NO_CONTENT)
+        return Response(status_code = status.HTTP_204_NO_CONTENT)
     else:
         for data_product in data_products:
             if "BATCH" in data_product["data_source_type"]:
@@ -774,20 +790,20 @@ async def delete_data_products(request: Request):
             elif "STREAMING" in data_product["data_source_type"]:
                 delete_streaming_data_product(data_product["_id"])
         mongodb_collection.delete_many({})
-        return Response(status_code=status.HTTP_204_NO_CONTENT)
+        return Response(status_code = status.HTTP_204_NO_CONTENT)
 
 @app.delete(
-        path="/dataProduct/{data_product_id}",
+        path="/dataProducts/{data_product_id}",
         description="Delete data product by passing its ID.",
         tags=["Delete"]
 )
 async def delete_data_product(request: Request, data_product_id: str):
     '''
-    FastAPI request handler function: HTTP DELETE /dataProduct/{data_product_id}.
+    FastAPI request handler function: HTTP DELETE /dataProducts/{data_product_id}.
     '''
 
     print("\n")
-    logger.info("Received DELETE request to access /dataProduct resource from " + request.client.host + ":" + str(request.client.port))
+    logger.info("Received DELETE request to access /dataProducts resource from " + request.client.host + ":" + str(request.client.port))
     logger.info("Request is for deleting the Data Product with ID: " + data_product_id)
 
     data_product = list(mongodb_collection.find({"_id": data_product_id}))

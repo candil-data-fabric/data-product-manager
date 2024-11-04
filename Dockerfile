@@ -10,8 +10,8 @@
 FROM python:3.9-slim as python-base
 
 # Some labels are defined to store metadata.
-LABEL image_version="2.1.0"
-LABEL app_version="2.1.0"
+LABEL image_version="2.2.0"
+LABEL app_version="2.2.0"
 LABEL maintainer="Lucía Cabanillas Rodríguez, David Martínez García"
 
     # python
