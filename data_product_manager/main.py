@@ -1,5 +1,5 @@
 __name__ = "Data Product Manager"
-__version__ = "2.2.0"
+__version__ = "2.3.0"
 __author__ = [
     "Lucía Cabanillas Rodríguez",
     "David Martínez García"
@@ -381,6 +381,8 @@ def delete_helm_release(api_instance: kubernetes.client.CoreV1Api, name: str, na
     ONLY FOR BATCH DATA SOURCES.
 
     It deletes a HelmRelease within the FluxCD system for deploying a Morph-KGC job/instance.
+    It also deletes ConfigMaps associated with the batch data product.
+    Therefore, it can be considered a function to delete a batch data product.
     '''
 
     custom_api_instance = CustomObjectsApi(api_instance.api_client)
@@ -399,6 +401,23 @@ def delete_helm_release(api_instance: kubernetes.client.CoreV1Api, name: str, na
         raise HTTPException(
             status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail = f"Exception while trying to delete HelmRelease '{name}': {e}."
+        )
+    
+    try:
+        api_instance.delete_namespaced_config_map(
+            name = name + "-" + "configmap-mappings",
+            namespace = namespace
+        )
+        api_instance.delete_namespaced_config_map(
+            name = name + "-" + "configmap-config",
+            namespace = namespace
+        )
+        logger.info(f"ConfigMaps for HelmRelease '{name}' deleted successfully.")
+    except Exception as e:
+        logger.info(f"Error deleting ConfigMaps for HelmRelease '{name}': {e}.")
+        raise HTTPException(
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail = f"Exception while trying to delete ConfigMaps for HelmRelease '{name}': {e}."
         )
 
 def onboard_batch_data_product(data_source: DataSource, mappings_file: UploadFile, mappings_content: bytes, data_product: dict) -> dict:
@@ -419,15 +438,15 @@ def onboard_batch_data_product(data_source: DataSource, mappings_file: UploadFil
         except ValueError:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid crontab/cronjob format for freshness.")
 
-    configmap_mappings_name = "data-fabric-morph-kgc-configmap-mappings-" + data_source.details.name
-    configmap_config_name = "data-fabric-morph-kgc-configmap-config-" + data_source.details.name
+    configmap_mappings_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source.details.name + "-" + "configmap-mappings"
+    configmap_config_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source.details.name + "-" + "configmap-config"
     mappings_file_name = mappings_file.filename
     mappings_file_name_splitted = mappings_file_name.split(".")
     # name_mappings_file_splitted[0] is the original name of the file without the extension.
     # name_mappings_file_splitted[1] is the file extension.
-    mappings_file_name = "data-fabric-morph-kgc-mappings-" + data_source.details.name + "." + mappings_file_name_splitted[1]
-    job_name = "data-fabric-morph-kgc-job-" + data_source.details.name
-    config_file_name = "data-fabric-morph-kgc-config-" + data_source.details.name + ".ini"
+    mappings_file_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source.details.name + "-" + "mappings" + "." + mappings_file_name_splitted[1]
+    job_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source.details.name + "-" + "job"
+    config_file_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source.details.name + "-" + "config" + "." + "ini"
 
     configuration = translate_to_ini(data_source, KAFKA_TOPIC, mappings_file_name, config_file_name)
 
