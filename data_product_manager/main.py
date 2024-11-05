@@ -1,5 +1,5 @@
 __name__ = "Data Product Manager"
-__version__ = "2.3.0"
+__version__ = "2.4.0"
 __author__ = [
     "Lucía Cabanillas Rodríguez",
     "David Martínez García"
@@ -267,9 +267,9 @@ def create_helm_repository(api_instance: kubernetes.client.CoreV1Api, name: str,
             plural = "helmrepositories",
             body = body
         )
-        logger.info("HelmRepository '{0}' created successfully.".format(name))
+        logger.info(f"HelmRepository '{name}' created successfully.")
     except Exception as e:
-        logger.warning("HelmRepository '{0}': {1} already created.".format(name, e))
+        logger.info(f"Exception while trying to create HelmRepository '{name}': {e}.")
 
 def create_helm_release(
         api_instance: kubernetes.client.CoreV1Api,
@@ -340,10 +340,11 @@ def create_helm_release(
         )
         logger.info(f"HelmRelease '{name}' created successfully.")
     except Exception as e:
-        logger.info(f"Error creating HelmRelease '{name}': {e}.")
+        logger.info(f"Exception while trying to create HelmRelease '{name}': {e}.")
         raise HTTPException(
             status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail = f"Exception while trying to create HelmRelease '{name}': {e}.")
+            detail = f"Exception while trying to create HelmRelease '{name}': {e}."
+        )
     
     return api_response
 
@@ -368,7 +369,7 @@ def delete_helm_repository(api_instance: kubernetes.client.CoreV1Api, name: str,
         )
         logger.info(f"HelmRepository '{name}' deleted successfully.")
     except Exception as e:
-        logger.info(f"Error deleting HelmRepository '{name}': {e}.")
+        logger.info(f"Exception while trying to delete HelmRepository '{name}': {e}.")
         raise HTTPException(
             status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail = f"Exception while trying to delete HelmRepository '{name}': {e}."
@@ -397,7 +398,7 @@ def delete_helm_release(api_instance: kubernetes.client.CoreV1Api, name: str, na
         )
         logger.info(f"HelmRelease '{name}' deleted successfully.")
     except Exception as e:
-        logger.info(f"Error deleting HelmRelease '{name}': {e}.")
+        logger.info(f"Exception while trying to delete HelmRelease '{name}': {e}.")
         raise HTTPException(
             status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail = f"Exception while trying to delete HelmRelease '{name}': {e}."
@@ -414,7 +415,7 @@ def delete_helm_release(api_instance: kubernetes.client.CoreV1Api, name: str, na
         )
         logger.info(f"ConfigMaps for HelmRelease '{name}' deleted successfully.")
     except Exception as e:
-        logger.info(f"Error deleting ConfigMaps for HelmRelease '{name}': {e}.")
+        logger.info(f"Exception while trying to delete ConfigMaps for HelmRelease '{name}': {e}.")
         raise HTTPException(
             status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail = f"Exception while trying to delete ConfigMaps for HelmRelease '{name}': {e}."
@@ -425,7 +426,8 @@ def onboard_batch_data_product(data_source: DataSource, mappings_file: UploadFil
     Auxiliary function: onboard_batch_data_product.
 
     It creates a HelmRelease within the FluxCD system to deploy Morph-KGC jobs that pull data from the
-    data source and do the corresponding mappings. The create_helm_release auxiliary function is used.
+    data source and do the corresponding mappings. It also creates the corresponding ConfigMaps within
+    the cluster to store Morph-KGC configuration and mappings. The create_helm_release auxiliary function is used.
 
     It returns a dictionary object with the data product details if all operations are successful. In any other case,
     an HTTPException is raised.
@@ -461,7 +463,7 @@ def onboard_batch_data_product(data_source: DataSource, mappings_file: UploadFil
     )
 
     k8s_configmap_config_body = kubernetes.client.V1ConfigMap(
-        metadata = kubernetes.client.V1ObjectMeta(name=configmap_config_name),
+        metadata = kubernetes.client.V1ObjectMeta(name = configmap_config_name),
         data = {
             config_file_name: config_content
         }
@@ -471,21 +473,16 @@ def onboard_batch_data_product(data_source: DataSource, mappings_file: UploadFil
         k8s_client.create_namespaced_config_map(
             KUBERNETES_NAMESPACE, k8s_configmap_mappings_body, field_validation = "Ignore"
         )
-    except ApiException as e:
-        logger.warning("Exception when calling CoreV1Api->create_namespaced_config_map: {0}.".format(e))
-        raise HTTPException(
-            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail = "Exception while calling internal Kubernetes API: CoreV1Api->create_namespaced_config_map: {0}.".format(e))
-    
-    try:
         k8s_client.create_namespaced_config_map(
             KUBERNETES_NAMESPACE, k8s_configmap_config_body, field_validation="Ignore"
         )
-    except ApiException as e:
-        logger.warning("Exception when calling CoreV1Api->create_namespaced_config_map: {0}.".format(e))
+        logger.info(f"ConfigMaps for HelmRelease '{"data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source.details.name}' created successfully.")
+    except Exception as e:
+        logger.info(f"Exception while trying to create ConfigMaps for HelmRelease '{"data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source.details.name}': {e}.")
         raise HTTPException(
             status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail = "Exception while calling internal Kubernetes API: CoreV1Api->create_namespaced_config_map: {0}.".format(e))
+            detail = f"Exception while trying to create ConfigMaps for HelmRelease '{"data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source.details.name}': {e}."
+        )
     
     api_response = create_helm_release(
         k8s_client, "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source.details.name, KUBERNETES_NAMESPACE,
@@ -651,7 +648,7 @@ k8s_client = kubernetes.client.CoreV1Api()
 
 # Initialize Mongo-DB client:
 mongodb_client = pymongo.MongoClient(MONGO_DB_URI)
-mongodb_database = mongodb_client["data-product-manager"]
+mongodb_database = mongodb_client["data-fabric-data-product-manager"]
 mongodb_collection = mongodb_database["data-products"]
 
 @asynccontextmanager
