@@ -469,6 +469,8 @@ def onboard_batch_data_product(data_source: DataSource, mappings_file: UploadFil
         }
     )
 
+    helm_release_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source.details.name
+
     try:
         k8s_client.create_namespaced_config_map(
             KUBERNETES_NAMESPACE, k8s_configmap_mappings_body, field_validation = "Ignore"
@@ -476,17 +478,16 @@ def onboard_batch_data_product(data_source: DataSource, mappings_file: UploadFil
         k8s_client.create_namespaced_config_map(
             KUBERNETES_NAMESPACE, k8s_configmap_config_body, field_validation="Ignore"
         )
-        logger.info(f"ConfigMaps for HelmRelease '{"data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source.details.name}' created successfully.")
+        logger.info(f"ConfigMaps for HelmRelease {helm_release_name}' created successfully.")
     except Exception as e:
-        logger.info(f"Exception while trying to create ConfigMaps for HelmRelease '{"data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source.details.name}': {e}.")
+        logger.info(f"Exception while trying to create ConfigMaps for HelmRelease '{helm_release_name}': {e}.")
         raise HTTPException(
             status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail = f"Exception while trying to create ConfigMaps for HelmRelease '{"data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source.details.name}': {e}."
+            detail = f"Exception while trying to create ConfigMaps for HelmRelease '{helm_release_name}': {e}."
         )
     
     api_response = create_helm_release(
-        k8s_client, "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source.details.name, KUBERNETES_NAMESPACE,
-        MORPH_CHART_NAME, MORPH_CHART_VERSION, HELM_REPO_NAME, job_name, configuration,
+        k8s_client, helm_release_name, KUBERNETES_NAMESPACE, MORPH_CHART_NAME, MORPH_CHART_VERSION, HELM_REPO_NAME, job_name, configuration,
         configmap_mappings_name, configmap_config_name, MORPH_IMAGE_REPOSITORY, data_source.details.freshness
     )
 
