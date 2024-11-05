@@ -478,7 +478,7 @@ def onboard_batch_data_product(data_source: DataSource, mappings_file: UploadFil
         k8s_client.create_namespaced_config_map(
             KUBERNETES_NAMESPACE, k8s_configmap_config_body, field_validation="Ignore"
         )
-        logger.info(f"ConfigMaps for HelmRelease {helm_release_name}' created successfully.")
+        logger.info(f"ConfigMaps for HelmRelease '{helm_release_name}' created successfully.")
     except Exception as e:
         logger.info(f"Exception while trying to create ConfigMaps for HelmRelease '{helm_release_name}': {e}.")
         raise HTTPException(
