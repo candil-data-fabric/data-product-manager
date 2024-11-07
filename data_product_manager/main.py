@@ -1,9 +1,3 @@
-'''
-TO-DO:
-
-* Continuar con integración de Semantic Translator (funciones auxilares y llamada POST a la API REST).
-'''
-
 __name__ = "Data Product Manager"
 __version__ = "3.0.0"
 __author__ = [
@@ -890,143 +884,84 @@ async def post_data_product(
     else:
         data_product["tags"] = ["default"]
     data_product["data_source_type"] = data_source.details.data_source_type
-    data_product["details"] = {}
     data_product["translation"] = {}
+    data_product["details"] = {}
 
     if (translation_source_to_central_file is None) and (translation_central_to_target_file is None):
+        # No semantic translation is required.
         data_product["translation"]["defined"] = "no"
+        data_product_output_kafka_topic = KAFKA_TOPIC
     if (translation_source_to_central_file is not None) and (translation_central_to_target_file is None):
+        # Semantic translation is required from source to central.
         data_product["translation"]["defined"] = "yes"
         data_product["translation"]["source_to_central"] = "yes"
         data_product["translation"]["central_to_target"] = "no"
         data_product["translation"]["metadata"] = {}
+        translation_source_to_central_contents = await translation_source_to_central_file.read()
+        input_alignment_details = create_alignment(translation_source_to_central_contents)
+        await translation_source_to_central_file.close()
+        translation_channel_details = {
+            "chanType": "KK",
+            "source": SEMANTIC_TRANSLATOR_SOURCE_TOPIC,
+            "inpAlignmentName": input_alignment_details["name"],
+            "inpAlignmentVersion": input_alignment_details["version"],
+            "outAlignmentName": "IDENTITY",
+            "outAlignmentVersion": "TBD",
+            "sink": KAFKA_TOPIC,
+            "parallelism": 0
+        }
+        data_product = create_translation_channel(translation_channel_details, data_product)
+        data_product_output_kafka_topic = SEMANTIC_TRANSLATOR_SOURCE_TOPIC
     if (translation_source_to_central_file is None) and (translation_central_to_target_file is not None):
+        # Semantic translation is required from central to target.
         data_product["translation"]["defined"] = "yes"
         data_product["translation"]["source_to_central"] = "no"
         data_product["translation"]["central_to_target"] = "yes"
         data_product["translation"]["metadata"] = {}
+        translation_central_to_target_contents = await translation_central_to_target_file.read()
+        output_alignment_details = create_alignment(translation_central_to_target_contents)
+        await translation_central_to_target_file.close()
+        translation_channel_details = {
+            "chanType": "KK",
+            "source": SEMANTIC_TRANSLATOR_SOURCE_TOPIC,
+            "inpAlignmentName": "IDENTITY",
+            "inpAlignmentVersion": "TBD",
+            "outAlignmentName": output_alignment_details["name"],
+            "outAlignmentVersion": output_alignment_details["version"],
+            "sink": KAFKA_TOPIC,
+            "parallelism": 0
+        }
+        data_product = create_translation_channel(translation_channel_details, data_product)
+        data_product_output_kafka_topic = SEMANTIC_TRANSLATOR_SOURCE_TOPIC
     if (translation_source_to_central_file is not None) and (translation_central_to_target_file is not None):
+        # Semantic translation is required from source to central and from central to target.
         data_product["translation"]["defined"] = "yes"
         data_product["translation"]["source_to_central"] = "yes"
         data_product["translation"]["central_to_target"] = "yes"
         data_product["translation"]["metadata"] = {}
+        translation_source_to_central_contents = await translation_source_to_central_file.read()
+        translation_central_to_target_contents = await translation_central_to_target_file.read()
+        input_alignment_details = create_alignment(translation_source_to_central_contents)
+        output_alignment_details = create_alignment(translation_central_to_target_contents)
+        await translation_source_to_central_file.close()
+        await translation_central_to_target_file.close()
+        translation_channel_details = {
+            "chanType": "KK",
+            "source": SEMANTIC_TRANSLATOR_SOURCE_TOPIC,
+            "inpAlignmentName": input_alignment_details["name"],
+            "inpAlignmentVersion": input_alignment_details["version"],
+            "outAlignmentName": output_alignment_details["name"],
+            "outAlignmentVersion": output_alignment_details["version"],
+            "sink": KAFKA_TOPIC,
+            "parallelism": 0
+        }
+        data_product = create_translation_channel(translation_channel_details, data_product)
+        data_product_output_kafka_topic = SEMANTIC_TRANSLATOR_SOURCE_TOPIC
 
     if isinstance(data_source.details, BatchDataSource):
-        if (translation_source_to_central_file is None) and (translation_central_to_target_file is None):
-            # No semantic translation is required.
-            data_product = onboard_batch_data_product(data_source, mappings_file, mappings_content, KAFKA_TOPIC, data_product)
-        if (translation_source_to_central_file is not None) and (translation_central_to_target_file is None):
-            # Semantic translation is required from source to central.
-            translation_source_to_central_contents = await translation_source_to_central_file.read()
-            input_alignment_details = create_alignment(translation_source_to_central_contents)
-            await translation_source_to_central_file.close()
-            translation_channel_details = {
-                "chanType": "KK",
-                "source": SEMANTIC_TRANSLATOR_SOURCE_TOPIC,
-                "inpAlignmentName": input_alignment_details["name"],
-                "inpAlignmentVersion": input_alignment_details["version"],
-                "outAlignmentName": "IDENTITY",
-                "outAlignmentVersion": "TBD",
-                "sink": KAFKA_TOPIC,
-                "parallelism": 0
-            }
-            data_product = create_translation_channel(translation_channel_details, data_product)
-            data_product = onboard_batch_data_product(data_source, mappings_file, mappings_content, SEMANTIC_TRANSLATOR_SOURCE_TOPIC, data_product)
-        if (translation_source_to_central_file is None) and (translation_central_to_target_file is not None):
-            # Semantic translation is required from central to target.
-            translation_central_to_target_contents = await translation_central_to_target_file.read()
-            output_alignment_details = create_alignment(translation_central_to_target_contents)
-            await translation_central_to_target_file.close()
-            translation_channel_details = {
-                "chanType": "KK",
-                "source": SEMANTIC_TRANSLATOR_SOURCE_TOPIC,
-                "inpAlignmentName": "IDENTITY",
-                "inpAlignmentVersion": "TBD",
-                "outAlignmentName": output_alignment_details["name"],
-                "outAlignmentVersion": output_alignment_details["version"],
-                "sink": KAFKA_TOPIC,
-                "parallelism": 0
-            }
-            data_product = create_translation_channel(translation_channel_details, data_product)
-            data_product = onboard_batch_data_product(data_source, mappings_file, mappings_content, SEMANTIC_TRANSLATOR_SOURCE_TOPIC, data_product)
-        if (translation_source_to_central_file is not None) and (translation_central_to_target_file is not None):
-            # Semantic translation is required from source to central and from central to target.
-            translation_source_to_central_contents = await translation_source_to_central_file.read()
-            translation_central_to_target_contents = await translation_central_to_target_file.read()
-            input_alignment_details = create_alignment(translation_source_to_central_contents)
-            output_alignment_details = create_alignment(translation_central_to_target_contents)
-            await translation_source_to_central_file.close()
-            await translation_central_to_target_file.close()
-            translation_channel_details = {
-                "chanType": "KK",
-                "source": SEMANTIC_TRANSLATOR_SOURCE_TOPIC,
-                "inpAlignmentName": input_alignment_details["name"],
-                "inpAlignmentVersion": input_alignment_details["version"],
-                "outAlignmentName": output_alignment_details["name"],
-                "outAlignmentVersion": output_alignment_details["version"],
-                "sink": KAFKA_TOPIC,
-                "parallelism": 0
-            }
-            data_product = create_translation_channel(translation_channel_details, data_product)
-            data_product = onboard_batch_data_product(data_source, mappings_file, mappings_content, SEMANTIC_TRANSLATOR_SOURCE_TOPIC, data_product)
+        data_product = onboard_batch_data_product(data_source, mappings_file, mappings_content, data_product_output_kafka_topic, data_product)
     elif isinstance(data_source.details, StreamingDataSource):
-        if (translation_source_to_central_file is None) and (translation_central_to_target_file is None):
-            # No semantic translation is required.
-            data_product = onboard_streaming_data_product(data_source, mappings_content, KAFKA_TOPIC, data_product)
-        if (translation_source_to_central_file is not None) and (translation_central_to_target_file is None):
-            # Semantic translation is required from source to central.
-            translation_source_to_central_contents = await translation_source_to_central_file.read()
-            input_alignment_details = create_alignment(translation_source_to_central_contents)
-            await translation_source_to_central_file.close()
-            translation_channel_details = {
-                "chanType": "KK",
-                "source": SEMANTIC_TRANSLATOR_SOURCE_TOPIC,
-                "inpAlignmentName": input_alignment_details["name"],
-                "inpAlignmentVersion": input_alignment_details["version"],
-                "outAlignmentName": "IDENTITY",
-                "outAlignmentVersion": "TBD",
-                "sink": KAFKA_TOPIC,
-                "parallelism": 0
-            }
-            data_product = create_translation_channel(translation_channel_details, data_product)
-            data_product = onboard_streaming_data_product(data_source, mappings_content, SEMANTIC_TRANSLATOR_SOURCE_TOPIC, data_product)
-        if (translation_source_to_central_file is None) and (translation_central_to_target_file is not None):
-            # Semantic translation is required from central to target.
-            translation_central_to_target_contents = await translation_central_to_target_file.read()
-            output_alignment_details = create_alignment(translation_central_to_target_contents)
-            await translation_central_to_target_file.close()
-            translation_channel_details = {
-                "chanType": "KK",
-                "source": SEMANTIC_TRANSLATOR_SOURCE_TOPIC,
-                "inpAlignmentName": "IDENTITY",
-                "inpAlignmentVersion": "TBD",
-                "outAlignmentName": output_alignment_details["name"],
-                "outAlignmentVersion": output_alignment_details["version"],
-                "sink": KAFKA_TOPIC,
-                "parallelism": 0
-            }
-            data_product = create_translation_channel(translation_channel_details, data_product)
-            data_product = onboard_streaming_data_product(data_source, mappings_content, SEMANTIC_TRANSLATOR_SOURCE_TOPIC, data_product)
-        if (translation_source_to_central_file is not None) and (translation_central_to_target_file is not None):
-            # Semantic translation is required from source to central and from central to target.
-            translation_source_to_central_contents = await translation_source_to_central_file.read()
-            translation_central_to_target_contents = await translation_central_to_target_file.read()
-            input_alignment_details = create_alignment(translation_source_to_central_contents)
-            output_alignment_details = create_alignment(translation_central_to_target_contents)
-            await translation_source_to_central_file.close()
-            await translation_central_to_target_file.close()
-            translation_channel_details = {
-                "chanType": "KK",
-                "source": SEMANTIC_TRANSLATOR_SOURCE_TOPIC,
-                "inpAlignmentName": input_alignment_details["name"],
-                "inpAlignmentVersion": input_alignment_details["version"],
-                "outAlignmentName": output_alignment_details["name"],
-                "outAlignmentVersion": output_alignment_details["version"],
-                "sink": KAFKA_TOPIC,
-                "parallelism": 0
-            }
-            data_product = create_translation_channel(translation_channel_details, data_product)
-            data_product = onboard_streaming_data_product(data_source, mappings_content, SEMANTIC_TRANSLATOR_SOURCE_TOPIC, data_product)
+        data_product = onboard_streaming_data_product(data_source, mappings_content, data_product_output_kafka_topic, data_product)
 
     await mappings_file.close()
 
