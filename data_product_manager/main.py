@@ -783,7 +783,7 @@ def create_translation_channel(translation_channel_settings: dict, data_product:
     )
     if response.status_code == status.HTTP_201_CREATED:
         logger.info("Translation channel successfully created.")
-        translation_channel_settings.update({"channelId": response.json["channel"]["id"]})
+        translation_channel_settings.update({"channelId": str(response.json["channel"]["id"])})
         data_product["translation"]["settings"] = translation_channel_settings
     else:
         logger.info("Exception while trying to create a new translation channel.")
@@ -791,7 +791,7 @@ def create_translation_channel(translation_channel_settings: dict, data_product:
 
     return data_product
 
-def delete_translation_channel(channel_id: int) -> None:
+def delete_translation_channel(channel_id: str) -> None:
     '''
     Auxiliary function: delete_translation_channel.
 
