@@ -238,6 +238,9 @@ def translate_to_ini(data_source: DataSource, output_kafka_topic: str, mappings_
     It generates a Morph-KGC config.ini given the details of the data source, the mappings file name and the
     output configuration.
     '''
+
+    logger.info("Generating config.ini file for Morph-KGC...")
+
     config = ConfigParser()
 
     config.add_section("CONFIGURATION")
@@ -256,6 +259,8 @@ def translate_to_ini(data_source: DataSource, output_kafka_topic: str, mappings_
     with open(config_file_name, "w") as config_file:
         config.write(config_file)
 
+    logger.info("Done.")
+
     return config_file_name
 
 def create_helm_repository(api_instance: kubernetes.client.CoreV1Api, name: str, namespace: str, repo_url: str) -> None:
@@ -266,6 +271,8 @@ def create_helm_repository(api_instance: kubernetes.client.CoreV1Api, name: str,
 
     It creates the HelmRepository within the FluxCD system for deploying Morph-KGC jobs/instances.
     '''
+
+    logger.info("Trying to create HelmRepository " + name + "...")
 
     body = {
         "apiVersion": "source.toolkit.fluxcd.io/v1",
@@ -315,6 +322,8 @@ def create_helm_release(
 
     It creates a HelmRelease within the FluxCD system for deploying a Morph-KGC job/instance.
     '''
+
+    logger.info("Trying to create HelmRelease " + name + "...")
 
     body = {
         "apiVersion": "helm.toolkit.fluxcd.io/v2",
@@ -380,6 +389,8 @@ def delete_helm_repository(api_instance: kubernetes.client.CoreV1Api, name: str,
     It deletes the HelmRepository within the FluxCD system for deploying Morph-KGC jobs/instances.
     '''
 
+    logger.info("Trying to delete HelmRepository " + name + "...")
+
     custom_api_instance = CustomObjectsApi(api_instance.api_client)
 
     try:
@@ -409,6 +420,8 @@ def delete_helm_release(api_instance: kubernetes.client.CoreV1Api, name: str, na
     Therefore, it can be considered a function to delete a batch data product.
     '''
 
+    logger.info("Trying to delete batch data product / HelmRelease " + name + "...")
+
     custom_api_instance = CustomObjectsApi(api_instance.api_client)
 
     try:
@@ -419,12 +432,12 @@ def delete_helm_release(api_instance: kubernetes.client.CoreV1Api, name: str, na
             plural = "helmreleases",
             name = name
         )
-        logger.info(f"HelmRelease '{name}' deleted successfully.")
+        logger.info(f"Batch data product / HelmRelease '{name}' deleted successfully.")
     except Exception as e:
-        logger.info(f"Exception while trying to delete HelmRelease '{name}': {e}.")
+        logger.info(f"Exception while trying to delete batch data product / HelmRelease '{name}': {e}.")
         raise HTTPException(
             status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail = f"Exception while trying to delete HelmRelease '{name}': {e}."
+            detail = f"Exception while trying to delete batch data product / HelmRelease '{name}': {e}."
         )
     
     try:
@@ -436,12 +449,12 @@ def delete_helm_release(api_instance: kubernetes.client.CoreV1Api, name: str, na
             name = name + "-" + "configmap-config",
             namespace = namespace
         )
-        logger.info(f"ConfigMaps for HelmRelease '{name}' deleted successfully.")
+        logger.info(f"ConfigMaps for batch data product / HelmRelease '{name}' deleted successfully.")
     except Exception as e:
-        logger.info(f"Exception while trying to delete ConfigMaps for HelmRelease '{name}': {e}.")
+        logger.info(f"Exception while trying to delete ConfigMaps for batch data product / HelmRelease '{name}': {e}.")
         raise HTTPException(
             status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail = f"Exception while trying to delete ConfigMaps for HelmRelease '{name}': {e}."
+            detail = f"Exception while trying to delete ConfigMaps for batch data product / HelmRelease '{name}': {e}."
         )
 
 def onboard_batch_data_product(data_source: DataSource, mappings_file: UploadFile, mappings_content: bytes, kafka_topic: str, data_product: dict) -> dict:
@@ -465,6 +478,8 @@ def onboard_batch_data_product(data_source: DataSource, mappings_file: UploadFil
     It returns a dictionary object with the data product details if all operations are successful. In any other case,
     an HTTPException is raised.
     '''
+
+    logger.info("Trying to onboard a new batch data product...")
 
     if data_source.details.freshness:
         try:
@@ -511,12 +526,13 @@ def onboard_batch_data_product(data_source: DataSource, mappings_file: UploadFil
         k8s_client.create_namespaced_config_map(
             KUBERNETES_NAMESPACE, k8s_configmap_config_body, field_validation="Ignore"
         )
-        logger.info(f"ConfigMaps for HelmRelease '{helm_release_name}' created successfully.")
+        logger.info(f"ConfigMaps for batch data product / HelmRelease '{helm_release_name}' created successfully.")
     except Exception as e:
-        logger.info(f"Exception while trying to create ConfigMaps for HelmRelease '{helm_release_name}': {e}.")
+        logger.info(f"Exception while trying to create ConfigMaps for batch data product / HelmRelease '{helm_release_name}': {e}.")
+        logger.info("Exception while trying to create a new batch data product.")
         raise HTTPException(
             status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail = f"Exception while trying to create ConfigMaps for HelmRelease '{helm_release_name}': {e}."
+            detail = f"Exception while trying to create ConfigMaps for batch data product / HelmRelease '{helm_release_name}': {e}. Exception while trying to create a new batch data product."
         )
     
     api_response = create_helm_release(
@@ -532,6 +548,8 @@ def onboard_batch_data_product(data_source: DataSource, mappings_file: UploadFil
     data_product["details"]["freshness"]["enabled"] = str(api_response["spec"]["values"]["cronJob"]["enabled"])
     data_product["details"]["freshness"]["schedule"] = str(data_source.details.freshness)
     data_product["creationTimestamp"] = api_response["metadata"]["creationTimestamp"]
+
+    logger.info("Batch data product onboarded successfully.")
 
     return data_product
 
@@ -555,6 +573,8 @@ def onboard_streaming_data_product(data_source: DataSource, mappings_content: by
     It returns a dictionary object with the data product details in case the request is successful. In any other case, an HTTPException is raised
     with the response details given by the Semantic Annotator.
     '''
+
+    logger.info("Trying to onboard a new streaming data product...")
 
     body = {}
     body["metadata"] = {}
@@ -648,17 +668,20 @@ def onboard_streaming_data_product(data_source: DataSource, mappings_content: by
     
     response = requests.post(
         url = SEMANTIC_ANNOTATOR_URI + "channels",
-        json = body,
         headers = {
             "accept": "text/plain",
             "Content-Type": "application/json"
-        }
+        },
+        json = body
     )
     if response.status_code != status.HTTP_200_OK:
+        logger.info("Exception while trying to onboard a new streaming data product.")
         raise HTTPException(status_code = response.status_code, detail = response.text)
     
     data_product["details"] = body
     data_product["creationTimestamp"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+
+    logger.info("Streaming data product onboarded successfully.")
 
     return data_product
 
@@ -673,60 +696,125 @@ def delete_streaming_data_product(data_product_id: str) -> None:
     the Semantic Annotator.
     '''
 
+    logger.info("Trying to delete streaming data product " + data_product_id + "...")
+
     response = requests.delete(
         url = SEMANTIC_ANNOTATOR_URI + "channels" + "/" + data_product_id,
         headers = {
             "accept": "text/plain"
         }
     )
-    if response.status_code != status.HTTP_200_OK:
+    if response.status_code == status.HTTP_200_OK:
+        logger.info("Streaming data product " + data_product_id + " deleted successfully.")
+    else:
+        logger.info("Exception while trying to delete streaming data product " + data_product_id + ".")
         raise HTTPException(status_code = response.status_code, detail = response.text)
 
 def create_alignment(translation_rules: bytes) -> dict:
-    return None
+    '''
+    Auxiliary function: create_alignment.
+
+    It sends an HTTP POST request to the Semantic Translator to create the alignment
+    (set of translation rules) which content is passed as body of the request.
+
+    In case the request is not successful, an HTTPException is raised with the response details given by
+    the Semantic Translator.
+    '''
+
+    logger.info("Trying to create a new alignment...")
+
+    response = requests.post(
+        url = SEMANTIC_TRANSLATOR_URI + "alignments",
+        headers = {
+            "accept": "application/json",
+            "Content-Type": "application/xml"
+        },
+        data = translation_rules.decode("utf-8")
+    )
+    # Handle response.
 
 def delete_alignment(name: str, version: str) -> None:
     '''
     Auxiliary function: delete_alignment.
 
-    It sends an HTTP DELETE request to the Semantic Translator to delete the alignment/translation rules which
-    name and version are passed as parameters.
+    It sends an HTTP DELETE request to the Semantic Translator to delete the alignment
+    (set of translation rules) which name and version are passed as parameters.
 
     In case the request is not successful, an HTTPException is raised with the response details given by
     the Semantic Translator.
     '''
     
+    logger.info("Trying to delete alignment " + name + "/" + version + "...")
+
     response = requests.delete(
-        url = SEMANTIC_TRANSLATOR_URI + "alignments" + "/" + "name" + "/" + "version",
+        url = SEMANTIC_TRANSLATOR_URI + "alignments" + "/" + name + "/" + version,
         headers = {
-            "accept": "text/plain, application/json"
+            "accept": "application/json"
         }
     )
-    if response.status_code != status.HTTP_204_NO_CONTENT:
-        raise HTTPException(status_code = response.status_code, detail = response.text)
+    if response.status_code == status.HTTP_204_NO_CONTENT:
+        logger.info("Alignment " + name + "/" + version + " successfully deleted.")
+    else:
+        logger.info("Exception while trying to delete alignment " + name + "/" + version + ".")
+        raise HTTPException(status_code = response.status_code, detail = response.json)
 
-def create_translation_channel(translation_channel_details: dict, data_product: dict) -> dict:
-    return None
+def create_translation_channel(translation_channel_settings: dict, data_product: dict) -> dict:
+    '''
+    Auxiliary function: create_translation_channel.
+
+    It send an HTTP POST request to the Semantic Translator to create a new translation channel
+    which settings are passed as a parameter.
+
+    In case the request is not successful, an HTTPException is raised with the response details
+    given by the Semantic Translator.
+    '''
+
+    logger.info("Trying to create a new translation channel...")
+    logger.info("Settings:")
+    logger.info(json.dumps(translation_channel_settings, indent = 4))
+
+    response = requests.post(
+        url = SEMANTIC_TRANSLATOR_URI + "channels",
+        headers = {
+            "accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        json = translation_channel_settings
+    )
+    if response.status_code == status.HTTP_201_CREATED:
+        logger.info("Translation channel successfully created.")
+        translation_channel_settings.update({"channelId": response.json["channel"]["id"]})
+        data_product["translation"]["settings"] = translation_channel_settings
+    else:
+        logger.info("Exception while trying to create a new translation channel.")
+        raise HTTPException(status_code = response.status_code, detail = response.json)
+
+    return data_product
 
 def delete_translation_channel(channel_id: int) -> None:
     '''
     Auxiliary function: delete_translation_channel.
 
-    It sends an HTTP DELETE request to the Semantic Translator to delete the channel associated
-    with the translation process, which ID is passed as a parameter.
+    It sends an HTTP DELETE request to the Semantic Translator to delete the translation channel
+    which ID is passed as a parameter.
 
-    In case the request is not successful, an HTTPException is raised with the response details given by
-    the Semantic Translator.
+    In case the request is not successful, an HTTPException is raised with the response details
+    given by the Semantic Translator.
     '''
+
+    logger.info("Trying to delete translation channel " + channel_id + "...")
 
     response = requests.delete(
         url = SEMANTIC_TRANSLATOR_URI + "channels" + "/" + channel_id,
         headers = {
-            "accept": "text/plain, application/json"
+            "accept": "application/json"
         }
     )
-    if response.status_code != status.HTTP_204_NO_CONTENT:
-        raise HTTPException(status_code = response.status_code, detail = response.text)
+    if response.status_code == status.HTTP_204_NO_CONTENT:
+        logger.info("Translation channel " + channel_id + " successfully deleted.")
+    else:
+        logger.info("Exception while trying to delete translation channel " + channel_id + ".")
+        raise HTTPException(status_code = response.status_code, detail = response.json)
 
 ## -- END DEFINITION OF AUXILIARY FUNCTIONS -- ##
 
@@ -749,7 +837,7 @@ async def lifespan(app: FastAPI):
 
     # -- BEGIN STARTUP -- #
 
-    logger.info("Application started")
+    logger.info("Application started.")
 
     # Create HelmRepository resource:
     create_helm_repository(k8s_client, HELM_REPO_NAME, KUBERNETES_NAMESPACE, HELM_REPO_URL)
@@ -760,29 +848,31 @@ async def lifespan(app: FastAPI):
 
     # -- BEGIN SHUTDOWN -- #
 
+    logger.info("Shutdown event detected. Beginning cleanup process...")
     # Cleanup process:
     data_products = list(mongodb_collection.find())
     if len(data_products) > 0:
         for data_product in data_products:
             if data_product["translation"]["defined"] == "yes":
                 # Delete translation channel:
-                delete_translation_channel(data_product["translation"]["metadata"]["channelId"])
+                delete_translation_channel(data_product["translation"]["settings"]["channelId"])
                 # Delete alignments/translation rules:
                 if (data_product["translation"]["source_to_central"] == "yes") and (data_product["translation"]["source_to_central"] == "no"):
-                    delete_alignment(data_product["translation"]["metadata"]["inpAlignmentName"], data_product["translation"]["metadata"]["inpAlignmentVersion"])
+                    delete_alignment(data_product["translation"]["settings"]["inpAlignmentName"], data_product["translation"]["settings"]["inpAlignmentVersion"])
                 if (data_product["translation"]["source_to_central"] == "no") and (data_product["translation"]["source_to_central"] == "yes"):
-                    delete_alignment(data_product["translation"]["metadata"]["outAlignmentName"], data_product["translation"]["metadata"]["outAlignmentVersion"])
+                    delete_alignment(data_product["translation"]["settings"]["outAlignmentName"], data_product["translation"]["settings"]["outAlignmentVersion"])
                 if (data_product["translation"]["source_to_central"] == "yes") and (data_product["translation"]["source_to_central"] == "yes"):
-                    delete_alignment(data_product["translation"]["metadata"]["inpAlignmentName"], data_product["translation"]["metadata"]["inpAlignmentVersion"])
-                    delete_alignment(data_product["translation"]["metadata"]["outAlignmentName"], data_product["translation"]["metadata"]["outAlignmentVersion"])
+                    delete_alignment(data_product["translation"]["settings"]["inpAlignmentName"], data_product["translation"]["settings"]["inpAlignmentVersion"])
+                    delete_alignment(data_product["translation"]["settings"]["outAlignmentName"], data_product["translation"]["settings"]["outAlignmentVersion"])
             if "BATCH" in data_product["data_source_type"]:
                 delete_helm_release(k8s_client, "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_product["name"], KUBERNETES_NAMESPACE)
             elif "STREAMING" in data_product["data_source_type"]:
                 delete_streaming_data_product(data_product["_id"])
         mongodb_collection.delete_many({})
     delete_helm_repository(k8s_client, HELM_REPO_NAME, KUBERNETES_NAMESPACE)
-    
-    logger.info("Application finished")
+    logger.info("Cleanup process completed.")
+
+    logger.info("Application finished.")
 
     # -- END SHUTDOWN -- #
 
@@ -804,8 +894,8 @@ async def get_data_products(request: Request):
     '''
 
     print("\n")
-    logger.info("Received GET request to access /dataProducts resource from " + request.client.host + ":" + str(request.client.port))
-    logger.info("Request is for retrieving all existing Data Products")
+    logger.info("Received GET request to access /dataProducts resource from " + request.client.host + ":" + str(request.client.port) + ".")
+    logger.info("Request is for retrieving all existing Data Products.")
 
     data_products = list(mongodb_collection.find())
     if len(data_products) == 0:
@@ -824,8 +914,8 @@ async def get_data_product(request: Request, data_product_id: str):
     '''
     
     print("\n")
-    logger.info("Received GET request to access /dataProducts resource from " + request.client.host + ":" + str(request.client.port))
-    logger.info("Request is for retrieving the Data Product with ID: " + data_product_id)
+    logger.info("Received GET request to access /dataProducts resource from " + request.client.host + ":" + str(request.client.port) + ".")
+    logger.info("Request is for retrieving the Data Product with ID: " + data_product_id + ".")
 
     data_product = list(mongodb_collection.find({"_id": data_product_id}))
     if len(data_product) == 0:
@@ -854,8 +944,8 @@ async def post_data_product(
     '''
 
     print("\n")
-    logger.info("Received POST request to access /dataProducts resource from " + request.client.host + ":" + str(request.client.port))
-    logger.info("Request is for onboarding a new Data Product")
+    logger.info("Received POST request to access /dataProducts resource from " + request.client.host + ":" + str(request.client.port) + ".")
+    logger.info("Request is for onboarding a new Data Product.")
     logger.info("Data Product details:")
     logger.info(data_source.model_dump_json(indent=4))
 
@@ -896,56 +986,52 @@ async def post_data_product(
         data_product["translation"]["defined"] = "yes"
         data_product["translation"]["source_to_central"] = "yes"
         data_product["translation"]["central_to_target"] = "no"
-        data_product["translation"]["metadata"] = {}
+        data_product["translation"]["settings"] = {}
         translation_source_to_central_contents = await translation_source_to_central_file.read()
         input_alignment_details = create_alignment(translation_source_to_central_contents)
         await translation_source_to_central_file.close()
-        translation_channel_details = {
+        translation_channel_settings = {
             "chanType": "KK",
             "source": SEMANTIC_TRANSLATOR_SOURCE_TOPIC,
             "inpAlignmentName": input_alignment_details["name"],
             "inpAlignmentVersion": input_alignment_details["version"],
-            "outAlignmentName": "IDENTITY",
-            "outAlignmentVersion": "TBD",
             "sink": KAFKA_TOPIC,
             "parallelism": 0
         }
-        data_product = create_translation_channel(translation_channel_details, data_product)
+        data_product = create_translation_channel(translation_channel_settings, data_product)
         data_product_output_kafka_topic = SEMANTIC_TRANSLATOR_SOURCE_TOPIC
     if (translation_source_to_central_file is None) and (translation_central_to_target_file is not None):
         # Semantic translation is required from central to target.
         data_product["translation"]["defined"] = "yes"
         data_product["translation"]["source_to_central"] = "no"
         data_product["translation"]["central_to_target"] = "yes"
-        data_product["translation"]["metadata"] = {}
+        data_product["translation"]["settings"] = {}
         translation_central_to_target_contents = await translation_central_to_target_file.read()
         output_alignment_details = create_alignment(translation_central_to_target_contents)
         await translation_central_to_target_file.close()
-        translation_channel_details = {
+        translation_channel_settings = {
             "chanType": "KK",
             "source": SEMANTIC_TRANSLATOR_SOURCE_TOPIC,
-            "inpAlignmentName": "IDENTITY",
-            "inpAlignmentVersion": "TBD",
             "outAlignmentName": output_alignment_details["name"],
             "outAlignmentVersion": output_alignment_details["version"],
             "sink": KAFKA_TOPIC,
             "parallelism": 0
         }
-        data_product = create_translation_channel(translation_channel_details, data_product)
+        data_product = create_translation_channel(translation_channel_settings, data_product)
         data_product_output_kafka_topic = SEMANTIC_TRANSLATOR_SOURCE_TOPIC
     if (translation_source_to_central_file is not None) and (translation_central_to_target_file is not None):
         # Semantic translation is required from source to central and from central to target.
         data_product["translation"]["defined"] = "yes"
         data_product["translation"]["source_to_central"] = "yes"
         data_product["translation"]["central_to_target"] = "yes"
-        data_product["translation"]["metadata"] = {}
+        data_product["translation"]["settings"] = {}
         translation_source_to_central_contents = await translation_source_to_central_file.read()
         translation_central_to_target_contents = await translation_central_to_target_file.read()
         input_alignment_details = create_alignment(translation_source_to_central_contents)
         output_alignment_details = create_alignment(translation_central_to_target_contents)
         await translation_source_to_central_file.close()
         await translation_central_to_target_file.close()
-        translation_channel_details = {
+        translation_channel_settings = {
             "chanType": "KK",
             "source": SEMANTIC_TRANSLATOR_SOURCE_TOPIC,
             "inpAlignmentName": input_alignment_details["name"],
@@ -955,7 +1041,7 @@ async def post_data_product(
             "sink": KAFKA_TOPIC,
             "parallelism": 0
         }
-        data_product = create_translation_channel(translation_channel_details, data_product)
+        data_product = create_translation_channel(translation_channel_settings, data_product)
         data_product_output_kafka_topic = SEMANTIC_TRANSLATOR_SOURCE_TOPIC
 
     if isinstance(data_source.details, BatchDataSource):
@@ -980,8 +1066,8 @@ async def delete_data_products(request: Request):
     '''
 
     print("\n")
-    logger.info("Received DELETE request to access /dataProducts resource from " + request.client.host + ":" + str(request.client.port))
-    logger.info("Request is for deleting all existing Data Products")
+    logger.info("Received DELETE request to access /dataProducts resource from " + request.client.host + ":" + str(request.client.port) + ".")
+    logger.info("Request is for deleting all existing Data Products.")
 
     data_products = list(mongodb_collection.find())
     if len(data_products) == 0:
@@ -990,15 +1076,15 @@ async def delete_data_products(request: Request):
         for data_product in data_products:
             if data_product["translation"]["defined"] == "yes":
                 # Delete translation channel:
-                delete_translation_channel(data_product["translation"]["metadata"]["channelId"])
+                delete_translation_channel(data_product["translation"]["settings"]["channelId"])
                 # Delete alignments/translation rules:
                 if (data_product["translation"]["source_to_central"] == "yes") and (data_product["translation"]["source_to_central"] == "no"):
-                    delete_alignment(data_product["translation"]["metadata"]["inpAlignmentName"], data_product["translation"]["metadata"]["inpAlignmentVersion"])
+                    delete_alignment(data_product["translation"]["settings"]["inpAlignmentName"], data_product["translation"]["settings"]["inpAlignmentVersion"])
                 if (data_product["translation"]["source_to_central"] == "no") and (data_product["translation"]["source_to_central"] == "yes"):
-                    delete_alignment(data_product["translation"]["metadata"]["outAlignmentName"], data_product["translation"]["metadata"]["outAlignmentVersion"])
+                    delete_alignment(data_product["translation"]["settings"]["outAlignmentName"], data_product["translation"]["settings"]["outAlignmentVersion"])
                 if (data_product["translation"]["source_to_central"] == "yes") and (data_product["translation"]["source_to_central"] == "yes"):
-                    delete_alignment(data_product["translation"]["metadata"]["inpAlignmentName"], data_product["translation"]["metadata"]["inpAlignmentVersion"])
-                    delete_alignment(data_product["translation"]["metadata"]["outAlignmentName"], data_product["translation"]["metadata"]["outAlignmentVersion"])
+                    delete_alignment(data_product["translation"]["settings"]["inpAlignmentName"], data_product["translation"]["settings"]["inpAlignmentVersion"])
+                    delete_alignment(data_product["translation"]["settings"]["outAlignmentName"], data_product["translation"]["settings"]["outAlignmentVersion"])
             if "BATCH" in data_product["data_source_type"]:
                 delete_helm_release(k8s_client, "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_product["name"], KUBERNETES_NAMESPACE)
             elif "STREAMING" in data_product["data_source_type"]:
@@ -1017,8 +1103,8 @@ async def delete_data_product(request: Request, data_product_id: str):
     '''
 
     print("\n")
-    logger.info("Received DELETE request to access /dataProducts resource from " + request.client.host + ":" + str(request.client.port))
-    logger.info("Request is for deleting the Data Product with ID: " + data_product_id)
+    logger.info("Received DELETE request to access /dataProducts resource from " + request.client.host + ":" + str(request.client.port) + ".")
+    logger.info("Request is for deleting the Data Product with ID: " + data_product_id + ".")
 
     data_product = list(mongodb_collection.find({"_id": data_product_id}))
     if len(data_product) == 0:
@@ -1027,15 +1113,15 @@ async def delete_data_product(request: Request, data_product_id: str):
         data_product = data_product[0]
         if data_product["translation"]["defined"] == "yes":
             # Delete translation channel:
-            delete_translation_channel(data_product["translation"]["metadata"]["channelId"])
+            delete_translation_channel(data_product["translation"]["settings"]["channelId"])
             # Delete alignments/translation rules:
             if (data_product["translation"]["source_to_central"] == "yes") and (data_product["translation"]["source_to_central"] == "no"):
-                delete_alignment(data_product["translation"]["metadata"]["inpAlignmentName"], data_product["translation"]["metadata"]["inpAlignmentVersion"])
+                delete_alignment(data_product["translation"]["settings"]["inpAlignmentName"], data_product["translation"]["settings"]["inpAlignmentVersion"])
             if (data_product["translation"]["source_to_central"] == "no") and (data_product["translation"]["source_to_central"] == "yes"):
-                delete_alignment(data_product["translation"]["metadata"]["outAlignmentName"], data_product["translation"]["metadata"]["outAlignmentVersion"])
+                delete_alignment(data_product["translation"]["settings"]["outAlignmentName"], data_product["translation"]["settings"]["outAlignmentVersion"])
             if (data_product["translation"]["source_to_central"] == "yes") and (data_product["translation"]["source_to_central"] == "yes"):
-                delete_alignment(data_product["translation"]["metadata"]["inpAlignmentName"], data_product["translation"]["metadata"]["inpAlignmentVersion"])
-                delete_alignment(data_product["translation"]["metadata"]["outAlignmentName"], data_product["translation"]["metadata"]["outAlignmentVersion"])
+                delete_alignment(data_product["translation"]["settings"]["inpAlignmentName"], data_product["translation"]["settings"]["inpAlignmentVersion"])
+                delete_alignment(data_product["translation"]["settings"]["outAlignmentName"], data_product["translation"]["settings"]["outAlignmentVersion"])
         if "BATCH" in data_product["data_source_type"]:
             delete_helm_release(k8s_client, "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_product["name"], KUBERNETES_NAMESPACE)
         elif "STREAMING" in data_product["data_source_type"]:
