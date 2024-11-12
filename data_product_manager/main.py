@@ -942,8 +942,8 @@ async def post_data_product(
     request: Request,
     data_source: DataSource = Body(...),
     mappings_file: UploadFile = File(...),
-    translation_source_to_central_file: UploadFile | None = None,
-    translation_central_to_target_file: UploadFile | None = None
+    translation_source_to_central_file: Union[UploadFile, None] = None,
+    translation_central_to_target_file: Union[UploadFile, None] = None
 ):
     '''
     FastAPI request handler function: HTTP POST /dataProduct.

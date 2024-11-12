@@ -12,31 +12,39 @@ The data product is defined as the combination of the following metadata and art
 
 Generated from periodic collections of raw data stored in local or remote files. When defining a Batch Data Product with files as a data source, these are the details that must be provided:
 
-- **Name (Optional)**: Name of the Data Product.
+- **Name**: Name of the Data Product.
 
-- **Description (Optional)**: Descriptive text of the Data Product.
+- **Description**: Descriptive text of the Data Product.
 
-- **Tags (Optional)**: List of tags that identify and categorize the Data Product.
+- **Owner**: URI that points to a knowledge graph entity that describes the owner of the Data Product.
 
-- **Data Source Type**: String that identifies the type of the Data Product within the Data Product Manager. For these Batch Data Products it must always be `BATCH_FILE`.
+- **Glossary terms**: List of URIs that point to knowledge graph entities that describe glossary/business terms.
 
-- **Freshness (Optional)**: The freshness of data sources is a crucial factor and is only applicable to Batch-type data sources. It determines how frequently the aerOS Data Fabric collects raw data from the target data source. This property is optional and can be tailored based on the user's specific requirements.
+- **Tags**: List of tags that identify and categorize the Data Product.
 
-- **Path to Data File**: The location of the data file is specified using the `file_path` property. Users must specify this property to indicate where the raw data is stored, facilitating seamless data processing.
+- **Data source type**: String that identifies the type of the Data Product within the Data Product Manager. For these Batch Data Products it must always be `BATCH_FILE`.
+
+- **Freshness**: The freshness of data sources is a crucial factor and is only applicable to batch-type data sources. It determines how frequently the Data Fabric collects raw data from the target data source. This property is optional and can be tailored based on the user's specific requirements.
+
+- **Path to data file**: The location of the data file is specified using the `file_path` property. Users must specify this property to indicate where the raw data is stored, facilitating seamless data processing.
 
 #### 1.2 Batch Data Products – Relational Databases
 
 Generated from periodic collections of raw data stored in relational databases. When creating a Batch Data Product with relational databases as a data source, these are the details that must be provided:
 
-- **Name (Optional)**: Name of the Data Product.
+- **Name**: Name of the Data Product.
 
-- **Description (Optional)**: Descriptive text of the Data Product.
+- **Description**: Descriptive text of the Data Product.
 
-- **Tags (Optional)**: List of tags that identify and categorize the Data Product.
+- **Owner**: URI that points to a knowledge graph entity that describes the owner of the Data Product.
 
-- **Data Source Type**: String that identifies the type of the Data Product within the Data Product Manager. For these Batch Data Products it must always be `BATCH_RELATIONAL_DATABASE`.
+- **Glossary terms**: List of URIs that point to knowledge graph entities that describe glossary/business terms.
 
-- **Freshness (Optional)**: The freshness of data sources remains a critical aspect and is specifically relevant to Batch-type data sources. It establishes the frequency at which the aerOS Data Fabric retrieves raw data from the designated relational database. Users have the flexibility to define the freshness, determining the frequency of data collection. This property is optional, allowing users to align data retrieval with their specific operational needs.
+- **Tags**: List of tags that identify and categorize the Data Product.
+
+- **Data source type**: String that identifies the type of the Data Product within the Data Product Manager. For these Batch Data Products it must always be `BATCH_RELATIONAL_DATABASE`.
+
+- **Freshness**: The freshness of data sources remains a critical aspect and is specifically relevant to Batch-type data sources. It establishes the frequency at which the Data Fabric retrieves raw data from the designated relational database. Users have the flexibility to define the freshness, determining the frequency of data collection. This property is optional, allowing users to align data retrieval with their specific operational needs.
 
 - **Database URL**: The database URL is specified using the `db_url` property. This parameter indicates the location and configuration details of the relational database from which raw data is collected.
 
@@ -44,37 +52,45 @@ Generated from periodic collections of raw data stored in relational databases. 
 
 Streaming Data Products are generated in real-time as data flows continuously from streaming sources such as Kafka or MQTT. When configuring a Streaming Data Product, these are the details that must be provided:
 
-#### 2.1	Streaming Data Products – Kafka Source
+#### 2.1	Streaming Data Products – Kafka Sources
 
-- **Name (Optional)**: Name of the Data Product.
+- **Name**: Name of the Data Product.
 
-- **Description (Optional)**: Descriptive text of the Data Product.
+- **Description**: Descriptive text of the Data Product.
 
-- **Tags (Optional)**: List of tags that identify and categorize the Data Product.
+- **Owner**: URI that points to a knowledge graph entity that describes the owner of the Data Product.
+
+- **Glossary terms**: List of URIs that point to knowledge graph entities that describe glossary/business terms.
+
+- **Tags**: List of tags that identify and categorize the Data Product.
 
 - **Input format**: Specifies the format for the input data. Valid values are `XML`, `JSON` or `CSV`.
 
-- **Input Topic**: The topic property is utilized to specify the streaming broker topic. This parameter defines the channel or subject from which real-time data is sourced.
+- **Input topic**: The topic property is utilized to specify the streaming broker topic. This parameter defines the channel or subject from which real-time data is sourced.
 
-- **Data Source Type**: String that identifies the type of the Data Product within the Data Product Manager. For these Streaming Data Products it must always be `STREAMING_KAFKA`.
+- **Data source type**: String that identifies the type of the Data Product within the Data Product Manager. For these Streaming Data Products it must always be `STREAMING_KAFKA`.
 
 - **Host**: IP address or FQDN where the Kafka broker is reachable.
 
 - **Port**: Port number where the Kafka broker is reachable.
 
-#### 2.2	Streaming Data Products – MQTT Source
+#### 2.2	Streaming Data Products – MQTT Sources
 
-- **Name (Optional)**: Name of the Data Product.
+- **Name**: Name of the Data Product.
 
-- **Description (Optional)**: Descriptive text of the Data Product.
+- **Description**: Descriptive text of the Data Product.
 
-- **Tags (Optional)**: List of tags that identify and categorize the Data Product.
+- **Owner**: URI that points to a knowledge graph entity that describes the owner of the Data Product.
+
+- **Glossary terms**: List of URIs that point to knowledge graph entities that describe glossary/business terms.
+
+- **Tags**: List of tags that identify and categorize the Data Product.
 
 - **Input format**: Specifies the format for the input data. Valid values are `XML`, `JSON` or `CSV`.
 
-- **Input Topic**: The topic property is utilized to specify the streaming broker topic. This parameter defines the channel or subject from which real-time data is sourced.
+- **Input topic**: The topic property is utilized to specify the streaming broker topic. This parameter defines the channel or subject from which real-time data is sourced.
 
-- **Data Source Type**: String that identifies the type of the Data Product within the Data Product Manager. For these Streaming Data Products it must always be `STREAMING_MQTT`.
+- **Data source type**: String that identifies the type of the Data Product within the Data Product Manager. For these Streaming Data Products it must always be `STREAMING_MQTT`.
 
 - **Host**: IP address or FQDN where the MQTT broker is reachable.
 
