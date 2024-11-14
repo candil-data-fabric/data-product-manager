@@ -272,7 +272,7 @@ def create_helm_repository(api_instance: kubernetes.client.CoreV1Api, name: str,
     It creates the HelmRepository within the FluxCD system for deploying Morph-KGC jobs/instances.
     '''
 
-    logger.info("Trying to create HelmRepository " + name + "...")
+    logger.info(f"Trying to create HelmRepository '{name}'...")
 
     body = {
         "apiVersion": "source.toolkit.fluxcd.io/v1",
@@ -323,7 +323,7 @@ def create_helm_release(
     It creates a HelmRelease within the FluxCD system for deploying a Morph-KGC job/instance.
     '''
 
-    logger.info("Trying to create HelmRelease " + name + "...")
+    logger.info(f"Trying to create HelmRelease '{name}'...")
 
     body = {
         "apiVersion": "helm.toolkit.fluxcd.io/v2",
@@ -389,7 +389,7 @@ def delete_helm_repository(api_instance: kubernetes.client.CoreV1Api, name: str,
     It deletes the HelmRepository within the FluxCD system for deploying Morph-KGC jobs/instances.
     '''
 
-    logger.info("Trying to delete HelmRepository " + name + "...")
+    logger.info(f"Trying to delete HelmRepository '{name}'...")
 
     custom_api_instance = CustomObjectsApi(api_instance.api_client)
 
@@ -420,7 +420,7 @@ def delete_helm_release(api_instance: kubernetes.client.CoreV1Api, name: str, na
     Therefore, it can be considered a function to delete a batch data product.
     '''
 
-    logger.info("Trying to delete batch data product / HelmRelease " + name + "...")
+    logger.info(f"Trying to delete batch data product / HelmRelease '{name}'...")
 
     custom_api_instance = CustomObjectsApi(api_instance.api_client)
 
@@ -696,7 +696,7 @@ def delete_streaming_data_product(data_product_id: str) -> None:
     the Semantic Annotator.
     '''
 
-    logger.info("Trying to delete streaming data product " + data_product_id + "...")
+    logger.info(f"Trying to delete streaming data product '{data_product_id}'...")
 
     response = requests.delete(
         url = SEMANTIC_ANNOTATOR_URI + "channels" + "/" + data_product_id,
@@ -705,9 +705,9 @@ def delete_streaming_data_product(data_product_id: str) -> None:
         }
     )
     if response.status_code == status.HTTP_200_OK:
-        logger.info("Streaming data product " + data_product_id + " deleted successfully.")
+        logger.info(f"Streaming data product '{data_product_id}' deleted successfully.")
     else:
-        logger.info("Exception while trying to delete streaming data product " + data_product_id + ".")
+        logger.info(f"Exception while trying to delete streaming data product '{data_product_id}'.")
         raise HTTPException(status_code = response.status_code, detail = response.text)
 
 def create_alignment(translation_rules: bytes) -> dict:
@@ -732,10 +732,10 @@ def create_alignment(translation_rules: bytes) -> dict:
         data = translation_rules.decode("utf-8")
     )
     if response.status_code == status.HTTP_201_CREATED:
-        logger.info("Alignment " + response.json()["info"]["name"] + "/" + response.json()["info"]["version"] + " created successfully.")
+        logger.info(f"Alignment '{response.json()["info"]["name"]} / {response.json()["info"]["version"]}' created successfully.")
         return response.json()["info"]
     else:
-        logger.info("Exception while trying to create alignment: " + response.json()["message"])
+        logger.info("Exception while trying to create alignment - " + response.json()["message"])
         raise HTTPException(status_code = response.status_code, detail = response.json()["message"])
 
 def delete_alignment(name: str, version: str) -> None:
@@ -749,7 +749,7 @@ def delete_alignment(name: str, version: str) -> None:
     the Semantic Translator.
     '''
     
-    logger.info("Trying to delete alignment " + name + "/" + version + "...")
+    logger.info(f"Trying to delete alignment '{name} / {version}'...")
 
     response = requests.delete(
         url = SEMANTIC_TRANSLATOR_URI + "alignments" + "/" + name + "/" + version,
@@ -758,9 +758,9 @@ def delete_alignment(name: str, version: str) -> None:
         }
     )
     if response.status_code == status.HTTP_204_NO_CONTENT:
-        logger.info("Alignment " + name + "/" + version + " successfully deleted.")
+        logger.info(f"Alignment '{name} / {version}' successfully deleted.")
     else:
-        logger.info("Exception while trying to delete alignment " + name + "/" + version + ".")
+        logger.info("Exception while trying to delete alignment - " + response.json()["message"])
         raise HTTPException(status_code = response.status_code, detail = response.json()["message"])
 
 def create_translation_channel(translation_channel_settings: dict, data_product: dict) -> dict:
@@ -808,7 +808,7 @@ def delete_translation_channel(channel_id: str) -> None:
     given by the Semantic Translator.
     '''
 
-    logger.info("Trying to delete translation channel " + channel_id + "...")
+    logger.info(f"Trying to delete translation channel '{channel_id}'...")
 
     response = requests.delete(
         url = SEMANTIC_TRANSLATOR_URI + "channels" + "/" + channel_id,
@@ -817,9 +817,9 @@ def delete_translation_channel(channel_id: str) -> None:
         }
     )
     if response.status_code == status.HTTP_204_NO_CONTENT:
-        logger.info("Translation channel " + channel_id + " successfully deleted.")
+        logger.info(f"Translation channel '{channel_id}' successfully deleted.")
     else:
-        logger.info("Exception while trying to delete translation channel " + channel_id + ".")
+        logger.info("Exception while trying to delete translation channel - " + response.json()["message"])
         raise HTTPException(status_code = response.status_code, detail = response.json()["message"])
 
 ## -- END DEFINITION OF AUXILIARY FUNCTIONS -- ##
