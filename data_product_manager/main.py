@@ -761,7 +761,7 @@ def delete_alignment(name: str, version: str) -> None:
         logger.info("Alignment " + name + "/" + version + " successfully deleted.")
     else:
         logger.info("Exception while trying to delete alignment " + name + "/" + version + ".")
-        raise HTTPException(status_code = response.status_code, detail = response.json())
+        raise HTTPException(status_code = response.status_code, detail = response.json()["message"])
 
 def create_translation_channel(translation_channel_settings: dict, data_product: dict) -> dict:
     '''
@@ -789,11 +789,11 @@ def create_translation_channel(translation_channel_settings: dict, data_product:
     if response.status_code == status.HTTP_201_CREATED:
         logger.info("Translation channel successfully created.")
         translation_channel_settings.update({"channelId": str(response.json()["info"]["id"])})
-        translation_channel_settings.update({"descId": str(response.json()["info"]["descId"])})
+        translation_channel_settings.update({"descId": response.json()["info"]["descId"]})
         data_product["translation"]["settings"] = translation_channel_settings
     else:
         logger.info("Exception while trying to create a new translation channel.")
-        raise HTTPException(status_code = response.status_code, detail = response.json())
+        raise HTTPException(status_code = response.status_code, detail = response.json()["message"])
 
     return data_product
 
@@ -820,7 +820,7 @@ def delete_translation_channel(channel_id: str) -> None:
         logger.info("Translation channel " + channel_id + " successfully deleted.")
     else:
         logger.info("Exception while trying to delete translation channel " + channel_id + ".")
-        raise HTTPException(status_code = response.status_code, detail = response.json())
+        raise HTTPException(status_code = response.status_code, detail = response.json()["message"])
 
 ## -- END DEFINITION OF AUXILIARY FUNCTIONS -- ##
 
@@ -1001,6 +1001,8 @@ async def post_data_product(
             "source": SEMANTIC_TRANSLATOR_SOURCE_TOPIC,
             "inpAlignmentName": input_alignment_details["name"],
             "inpAlignmentVersion": input_alignment_details["version"],
+            "outAlignmentName": "",
+            "outAlignmentVersion": "",
             "sink": KAFKA_TOPIC,
             "parallelism": 0
         }
@@ -1018,6 +1020,8 @@ async def post_data_product(
         translation_channel_settings = {
             "chanType": "KK",
             "source": SEMANTIC_TRANSLATOR_SOURCE_TOPIC,
+            "inpAlignmentName": "",
+            "inpAlignmentVersion": "",
             "outAlignmentName": output_alignment_details["name"],
             "outAlignmentVersion": output_alignment_details["version"],
             "sink": KAFKA_TOPIC,
