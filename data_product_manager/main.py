@@ -732,7 +732,9 @@ def create_alignment(translation_rules: bytes) -> dict:
         data = translation_rules.decode("utf-8")
     )
     if response.status_code == status.HTTP_201_CREATED:
-        logger.info(f"Alignment '{response.json()["info"]["name"]} / {response.json()["info"]["version"]}' created successfully.")
+        alignment_name = response.json()["info"]["name"]
+        alignment_version = response.json()["info"]["version"]
+        logger.info(f"Alignment '{alignment_name} / {alignment_version}' created successfully.")
         return response.json()["info"]
     else:
         logger.info("Exception while trying to create alignment - " + response.json()["message"])
