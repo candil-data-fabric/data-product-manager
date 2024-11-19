@@ -865,11 +865,11 @@ async def lifespan(app: FastAPI):
                 # Delete translation channel:
                 delete_translation_channel(data_product["translation"]["settings"]["channelId"])
                 # Delete alignments/translation rules:
-                if (data_product["translation"]["source_to_central"] == "yes") and (data_product["translation"]["source_to_central"] == "no"):
+                if (data_product["translation"]["source_to_central"] == "yes") and (data_product["translation"]["central_to_target"] == "no"):
                     delete_alignment(data_product["translation"]["settings"]["inpAlignmentName"], data_product["translation"]["settings"]["inpAlignmentVersion"])
-                if (data_product["translation"]["source_to_central"] == "no") and (data_product["translation"]["source_to_central"] == "yes"):
+                if (data_product["translation"]["source_to_central"] == "no") and (data_product["translation"]["central_to_target"] == "yes"):
                     delete_alignment(data_product["translation"]["settings"]["outAlignmentName"], data_product["translation"]["settings"]["outAlignmentVersion"])
-                if (data_product["translation"]["source_to_central"] == "yes") and (data_product["translation"]["source_to_central"] == "yes"):
+                if (data_product["translation"]["source_to_central"] == "yes") and (data_product["translation"]["central_to_target"] == "yes"):
                     delete_alignment(data_product["translation"]["settings"]["inpAlignmentName"], data_product["translation"]["settings"]["inpAlignmentVersion"])
                     delete_alignment(data_product["translation"]["settings"]["outAlignmentName"], data_product["translation"]["settings"]["outAlignmentVersion"])
             if "BATCH" in data_product["data_source_type"]:
@@ -989,6 +989,7 @@ async def post_data_product(
         # No semantic translation is required.
         data_product["translation"]["defined"] = "no"
         data_product_output_kafka_topic = KAFKA_TOPIC
+        data_product["details"]["output_kafka_topic"] = KAFKA_TOPIC
     if (translation_source_to_central_file is not None) and (translation_central_to_target_file is None):
         # Semantic translation is required from source to central.
         data_product["translation"]["defined"] = "yes"
@@ -1010,6 +1011,8 @@ async def post_data_product(
         }
         data_product = create_translation_channel(translation_channel_settings, data_product)
         data_product_output_kafka_topic = SEMANTIC_TRANSLATOR_SOURCE_TOPIC
+        data_product["details"]["pre_translation_output_kafka_topic"] = SEMANTIC_TRANSLATOR_SOURCE_TOPIC
+        data_product["details"]["post_translation_output_kafka_topic"] = KAFKA_TOPIC
     if (translation_source_to_central_file is None) and (translation_central_to_target_file is not None):
         # Semantic translation is required from central to target.
         data_product["translation"]["defined"] = "yes"
@@ -1031,6 +1034,8 @@ async def post_data_product(
         }
         data_product = create_translation_channel(translation_channel_settings, data_product)
         data_product_output_kafka_topic = SEMANTIC_TRANSLATOR_SOURCE_TOPIC
+        data_product["details"]["pre_translation_output_kafka_topic"] = SEMANTIC_TRANSLATOR_SOURCE_TOPIC
+        data_product["details"]["post_translation_output_kafka_topic"] = KAFKA_TOPIC
     if (translation_source_to_central_file is not None) and (translation_central_to_target_file is not None):
         # Semantic translation is required from source to central and from central to target.
         data_product["translation"]["defined"] = "yes"
@@ -1055,6 +1060,8 @@ async def post_data_product(
         }
         data_product = create_translation_channel(translation_channel_settings, data_product)
         data_product_output_kafka_topic = SEMANTIC_TRANSLATOR_SOURCE_TOPIC
+        data_product["details"]["pre_translation_output_kafka_topic"] = SEMANTIC_TRANSLATOR_SOURCE_TOPIC
+        data_product["details"]["post_translation_output_kafka_topic"] = KAFKA_TOPIC
 
     if isinstance(data_source.details, BatchDataSource):
         data_product = onboard_batch_data_product(data_source, mappings_file, mappings_content, data_product_output_kafka_topic, data_product)
@@ -1090,11 +1097,11 @@ async def delete_data_products(request: Request):
                 # Delete translation channel:
                 delete_translation_channel(data_product["translation"]["settings"]["channelId"])
                 # Delete alignments/translation rules:
-                if (data_product["translation"]["source_to_central"] == "yes") and (data_product["translation"]["source_to_central"] == "no"):
+                if (data_product["translation"]["source_to_central"] == "yes") and (data_product["translation"]["central_to_target"] == "no"):
                     delete_alignment(data_product["translation"]["settings"]["inpAlignmentName"], data_product["translation"]["settings"]["inpAlignmentVersion"])
-                if (data_product["translation"]["source_to_central"] == "no") and (data_product["translation"]["source_to_central"] == "yes"):
+                if (data_product["translation"]["source_to_central"] == "no") and (data_product["translation"]["central_to_target"] == "yes"):
                     delete_alignment(data_product["translation"]["settings"]["outAlignmentName"], data_product["translation"]["settings"]["outAlignmentVersion"])
-                if (data_product["translation"]["source_to_central"] == "yes") and (data_product["translation"]["source_to_central"] == "yes"):
+                if (data_product["translation"]["source_to_central"] == "yes") and (data_product["translation"]["central_to_target"] == "yes"):
                     delete_alignment(data_product["translation"]["settings"]["inpAlignmentName"], data_product["translation"]["settings"]["inpAlignmentVersion"])
                     delete_alignment(data_product["translation"]["settings"]["outAlignmentName"], data_product["translation"]["settings"]["outAlignmentVersion"])
             if "BATCH" in data_product["data_source_type"]:
@@ -1127,11 +1134,11 @@ async def delete_data_product(request: Request, data_product_id: str):
             # Delete translation channel:
             delete_translation_channel(data_product["translation"]["settings"]["channelId"])
             # Delete alignments/translation rules:
-            if (data_product["translation"]["source_to_central"] == "yes") and (data_product["translation"]["source_to_central"] == "no"):
+            if (data_product["translation"]["source_to_central"] == "yes") and (data_product["translation"]["central_to_target"] == "no"):
                 delete_alignment(data_product["translation"]["settings"]["inpAlignmentName"], data_product["translation"]["settings"]["inpAlignmentVersion"])
-            if (data_product["translation"]["source_to_central"] == "no") and (data_product["translation"]["source_to_central"] == "yes"):
+            if (data_product["translation"]["source_to_central"] == "no") and (data_product["translation"]["central_to_target"] == "yes"):
                 delete_alignment(data_product["translation"]["settings"]["outAlignmentName"], data_product["translation"]["settings"]["outAlignmentVersion"])
-            if (data_product["translation"]["source_to_central"] == "yes") and (data_product["translation"]["source_to_central"] == "yes"):
+            if (data_product["translation"]["source_to_central"] == "yes") and (data_product["translation"]["central_to_target"] == "yes"):
                 delete_alignment(data_product["translation"]["settings"]["inpAlignmentName"], data_product["translation"]["settings"]["inpAlignmentVersion"])
                 delete_alignment(data_product["translation"]["settings"]["outAlignmentName"], data_product["translation"]["settings"]["outAlignmentVersion"])
         if "BATCH" in data_product["data_source_type"]:
