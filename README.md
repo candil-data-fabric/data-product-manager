@@ -99,8 +99,8 @@ Streaming Data Products are generated in real-time as data flows continuously fr
 - **Protocol**: Protocol that must be used for the communication with the MQTT broker. Expected values are `tcp` or `udp`.
 
 ## Current versions:
-- **Data Product Manager application**: 3.0.0 (November 18th, 2024).
-- **Dockerfile**: 3.0.0 (November 18th, 2024).
+- **Data Product Manager application**: 3.0.0 (November 19th, 2024).
+- **Dockerfile**: 3.0.0 (November 19th, 2024).
 
 ## Data Product Manager Deployment
 
