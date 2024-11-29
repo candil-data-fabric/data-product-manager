@@ -678,7 +678,7 @@ def onboard_streaming_data_product(data_source: DataSource, mappings_content: by
         logger.info("Exception while trying to onboard a new streaming data product.")
         raise HTTPException(status_code = response.status_code, detail = response.text)
     
-    data_product["details"] = body
+    data_product["details"] | body
     data_product["creationTimestamp"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
     logger.info("Streaming data product onboarded successfully.")

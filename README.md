@@ -74,6 +74,8 @@ Streaming Data Products are generated in real-time as data flows continuously fr
 
 - **Port**: Port number where the Kafka broker is reachable.
 
+- **Group ID (Optional)**: Group ID property that must be used for the communication with the Kafka broker.
+
 #### 2.2	Streaming Data Products – MQTT Sources
 
 - **Name**: Name of the Data Product.
@@ -98,9 +100,15 @@ Streaming Data Products are generated in real-time as data flows continuously fr
 
 - **Protocol**: Protocol that must be used for the communication with the MQTT broker. Expected values are `tcp` or `udp`.
 
+- **Client ID (Optional)**: Client ID property that must be used for the communication with the MQTT broker.
+
+- **User (Optional)**: Username that must be used for connecting with the MQTT broker.
+
+- **Password (Optional)**: Password that must be used for connecting with the MQTT broker.
+
 ## Current versions:
-- **Data Product Manager application**: 3.0.0 (November 19th, 2024).
-- **Dockerfile**: 3.0.0 (November 19th, 2024).
+- **Data Product Manager application**: 3.0.0 (November 29th, 2024).
+- **Dockerfile**: 3.0.0 (November 29th, 2024).
 
 ## Data Product Manager Deployment
 
@@ -166,18 +174,18 @@ Define a JSON dictionary that contains the following details:
 ```json
 {
    "details": {
-   "name": "Data Product Name",
-   "description": "Data Product Description",
-   "owner": "Data Product Owner URI",
-   "glossary_terms": [
-      "Term 1 URI", "Term 2 URI", "Term 3 URI", "Term N URI"
-   ],
-   "tags": [
-      "Tag 1", "Tag 2", "Tag 3", "Tag N"
-   ],
-   "freshness": "Freshness (in crontab/cronjob format)",
-   "data_source_type": "BATCH_FILE",
-   "file_path": "URI of the data file"
+      "name": "Data Product Name",
+      "description": "Data Product Description",
+      "owner": "Data Product Owner URI",
+      "glossary_terms": [
+         "Term 1 URI", "Term 2 URI", "Term 3 URI", "Term N URI"
+      ],
+      "tags": [
+         "Tag 1", "Tag 2", "Tag 3", "Tag N"
+      ],
+      "freshness": "Freshness (in crontab/cronjob format)",
+      "data_source_type": "BATCH_FILE",
+      "file_path": "URI of the data file"
    }
 }
 ```
@@ -193,18 +201,18 @@ curl -X 'POST' 'http://localhost:<port>/dataProducts' \
    -H 'Content-Type: multipart/form-data' \
    -F 'data_source={
          "details": {
-         "name": "Data Product Name",
-         "description": "Data Product Description",
-         "owner": "Data Product Owner URI",
-         "glossary_terms": [
-            "Term 1 URI", "Term 2 URI", "Term 3 URI", "Term N URI"
-         ],
-         "tags": [
-            "Tag 1", "Tag 2", "Tag 3", "Tag N"
-         ],
-         "freshness": "Freshness (in crontab/cronjob format)",
-         "data_source_type": "BATCH_FILE",
-         "file_path": "URI of the data file"
+            "name": "Data Product Name",
+            "description": "Data Product Description",
+            "owner": "Data Product Owner URI",
+            "glossary_terms": [
+               "Term 1 URI", "Term 2 URI", "Term 3 URI", "Term N URI"
+            ],
+            "tags": [
+               "Tag 1", "Tag 2", "Tag 3", "Tag N"
+            ],
+            "freshness": "Freshness (in crontab/cronjob format)",
+            "data_source_type": "BATCH_FILE",
+            "file_path": "URI of the data file"
          }
       }' \
    # Mappings file is mandatory. Extension can be RML or YARRRML.
@@ -224,18 +232,18 @@ Define a JSON dictionary that contains the following details:
 ```json
 {
    "details": {
-   "name": "Data Product Name",
-   "description": "Data Product Description",
-   "owner": "Data Product Owner URI",
-   "glossary_terms": [
-      "Term 1 URI", "Term 2 URI", "Term 3 URI", "Term N URI"
-   ],
-   "tags": [
-      "Tag 1", "Tag 2", "Tag 3", "Tag N"
-   ],
-   "freshness": "Freshness (in crontab/cronjob format)",
-   "data_source_type": "BATCH_RELATIONAL_DATABASE",
-   "db_url": "URL of the database"
+      "name": "Data Product Name",
+      "description": "Data Product Description",
+      "owner": "Data Product Owner URI",
+      "glossary_terms": [
+         "Term 1 URI", "Term 2 URI", "Term 3 URI", "Term N URI"
+      ],
+      "tags": [
+         "Tag 1", "Tag 2", "Tag 3", "Tag N"
+      ],
+      "freshness": "Freshness (in crontab/cronjob format)",
+      "data_source_type": "BATCH_RELATIONAL_DATABASE",
+      "db_url": "URL of the database"
    }
 }
 ```
@@ -251,18 +259,18 @@ curl -X 'POST' 'http://localhost:<port>/dataProducts' \
    -H 'Content-Type: multipart/form-data' \
    -F 'data_source={
          "details": {
-         "name": "Data Product Name",
-         "description": "Data Product Description",
-         "owner": "Data Product Owner URI",
-         "glossary_terms": [
-            "Term 1 URI", "Term 2 URI", "Term 3 URI", "Term N URI"
-         ],
-         "tags": [
-            "Tag 1", "Tag 2", "Tag 3", "Tag N"
-         ],
-         "freshness": "Freshness (in crontab/cronjob format)",
-         "data_source_type": "BATCH_RELATIONAL_DATABASE",
-         "db_url": "URL of the database"
+            "name": "Data Product Name",
+            "description": "Data Product Description",
+            "owner": "Data Product Owner URI",
+            "glossary_terms": [
+               "Term 1 URI", "Term 2 URI", "Term 3 URI", "Term N URI"
+            ],
+            "tags": [
+               "Tag 1", "Tag 2", "Tag 3", "Tag N"
+            ],
+            "freshness": "Freshness (in crontab/cronjob format)",
+            "data_source_type": "BATCH_RELATIONAL_DATABASE",
+            "db_url": "URL of the database"
          }
       }' \
    # Mappings file is mandatory. Extension can be RML or YARRRML.
@@ -282,20 +290,21 @@ Define a JSON dictionary that contains the following details:
 ```json
 {
    "details": {
-   "name": "Data Product Name",
-   "description": "Data Product Description",
-   "owner": "Data Product Owner URI",
-   "glossary_terms": [
-      "Term 1 URI", "Term 2 URI", "Term 3 URI", "Term N URI"
-   ],
-   "tags": [
-      "Tag 1", "Tag 2", "Tag 3", "Tag N"
-   ],
-   "input_format": "Expected valid values are XML, JSON or CSV",
-   "input_topic": "Name of the input topic where source data is written",
-   "data_source_type": "STREAMING_KAFKA",
-   "host": "IP or FQDN where the Kafka broker is reachable",
-   "port": "Port number where the Kafka broker is reachable (integer, without double quotes)"
+      "name": "Data Product Name",
+      "description": "Data Product Description",
+      "owner": "Data Product Owner URI",
+      "glossary_terms": [
+         "Term 1 URI", "Term 2 URI", "Term 3 URI", "Term N URI"
+      ],
+      "tags": [
+         "Tag 1", "Tag 2", "Tag 3", "Tag N"
+      ],
+      "input_format": "Expected valid values are XML, JSON or CSV",
+      "input_topic": "Name of the input topic where source data is written",
+      "data_source_type": "STREAMING_KAFKA",
+      "host": "IP or FQDN where the Kafka broker is reachable",
+      "port": "Port number where the Kafka broker is reachable (integer, without double quotes)",
+      "group_id": "(OPTIONAL) Group ID property that must be used for the communication with the Kafka broker."
    }
 }
 ```
@@ -312,20 +321,21 @@ curl -X 'POST' 'http://localhost:<port>/dataProducts' \
    -H 'Content-Type: multipart/form-data' \
    -F 'data_source={
          "details": {
-         "name": "Data Product Name",
-         "description": "Data Product Description",
-         "owner": "Data Product Owner URI",
-         "glossary_terms": [
-            "Term 1 URI", "Term 2 URI", "Term 3 URI", "Term N URI"
-         ],
-         "tags": [
-            "Tag 1", "Tag 2", "Tag 3", "Tag N"
-         ],
-         "input_format": "Expected valid values are XML, JSON or CSV",
-         "input_topic": "input-topic",
-         "data_source_type": "STREAMING_KAFKA",
-         "host": "IP or FQDN where the Kafka broker is reachable",
-         "port": "Port number where the Kafka broker is reachable (integer, without double quotes)"
+            "name": "Data Product Name",
+            "description": "Data Product Description",
+            "owner": "Data Product Owner URI",
+            "glossary_terms": [
+               "Term 1 URI", "Term 2 URI", "Term 3 URI", "Term N URI"
+            ],
+            "tags": [
+               "Tag 1", "Tag 2", "Tag 3", "Tag N"
+            ],
+            "input_format": "Expected valid values are XML, JSON or CSV",
+            "input_topic": "input-topic",
+            "data_source_type": "STREAMING_KAFKA",
+            "host": "IP or FQDN where the Kafka broker is reachable",
+            "port": "Port number where the Kafka broker is reachable (integer, without double quotes)",
+            "group_id": "(OPTIONAL) Group ID property that must be used for the communication with the Kafka broker."
          }
       }' \
    # Mappings file is mandatory. Extension must always RML (CARML mappings).
@@ -345,21 +355,24 @@ Define a JSON dictionary that contains the following details:
 ```json
 {
    "details": {
-   "name": "Data Product Name",
-   "description": "Data Product Description",
-   "owner": "Data Product Owner URI",
-   "glossary_terms": [
-      "Term 1 URI", "Term 2 URI", "Term 3 URI", "Term N URI"
-   ],
-   "tags": [
-      "Tag 1", "Tag 2", "Tag 3", "Tag N"
-   ],
-   "input_format": "Expected valid values are XML, JSON or CSV",
-   "input_topic": "input/topic",
-   "data_source_type": "STREAMING_MQTT",
-   "host": "IP or FQDN where the MQTT broker is reachable",
-   "port": "Port number where the MQTT broker is reachable (integer, without double quotes)",
-   "protocol": "Protocol that must be used for the communication with the MQTT broker. Expected values are tcp or udp"
+      "name": "Data Product Name",
+      "description": "Data Product Description",
+      "owner": "Data Product Owner URI",
+      "glossary_terms": [
+         "Term 1 URI", "Term 2 URI", "Term 3 URI", "Term N URI"
+      ],
+      "tags": [
+         "Tag 1", "Tag 2", "Tag 3", "Tag N"
+      ],
+      "input_format": "Expected valid values are XML, JSON or CSV",
+      "input_topic": "input/topic",
+      "data_source_type": "STREAMING_MQTT",
+      "host": "IP or FQDN where the MQTT broker is reachable",
+      "port": "Port number where the MQTT broker is reachable (integer, without double quotes)",
+      "protocol": "Protocol that must be used for the communication with the MQTT broker. Expected values are tcp or udp",
+      "client_id": "(OPTIONAL) Client ID property that must be used for the communication with the MQTT broker.",
+      "user": "(OPTIONAL) Username that must be used for connecting with the MQTT broker.",
+      "password": "(OPTIONAL) Password that must be used for connecting with the MQTT broker."
    }
 }
 ```
@@ -376,21 +389,24 @@ curl -X 'POST' 'http://localhost:<port>/dataProducts' \
    -H 'Content-Type: multipart/form-data' \
    -F 'data_source={
          "details": {
-         "name": "Data Product Name",
-         "description": "Data Product Description",
-         "owner": "Data Product Owner URI",
-         "glossary_terms": [
-            "Term 1 URI", "Term 2 URI", "Term 3 URI", "Term N URI"
-         ],
-         "tags": [
-            "Tag 1", "Tag 2", "Tag 3", "Tag N"
-         ],
-         "input_format": "Expected valid values are XML, JSON or CSV",
-         "input_topic": "input/topic",
-         "data_source_type": "STREAMING_MQTT",
-         "host": "IP or FQDN where the MQTT broker is reachable",
-         "port": "Port number where the MQTT broker is reachable (integer, without double quotes)",
-         "protocol": "Protocol that must be used for the communication with the MQTT broker. Expected values are tcp or udp"
+            "name": "Data Product Name",
+            "description": "Data Product Description",
+            "owner": "Data Product Owner URI",
+            "glossary_terms": [
+               "Term 1 URI", "Term 2 URI", "Term 3 URI", "Term N URI"
+            ],
+            "tags": [
+               "Tag 1", "Tag 2", "Tag 3", "Tag N"
+            ],
+            "input_format": "Expected valid values are XML, JSON or CSV",
+            "input_topic": "input/topic",
+            "data_source_type": "STREAMING_MQTT",
+            "host": "IP or FQDN where the MQTT broker is reachable",
+            "port": "Port number where the MQTT broker is reachable (integer, without double quotes)",
+            "protocol": "Protocol that must be used for the communication with the MQTT broker. Expected values are tcp or udp",
+            "client_id": "(OPTIONAL) Client ID property that must be used for the communication with the MQTT broker.",
+            "user": "(OPTIONAL) Username that must be used for connecting with the MQTT broker.",
+            "password": "(OPTIONAL) Password that must be used for connecting with the MQTT broker."
          }
       }' \
    # Mappings file is mandatory. Extension must always RML (CARML mappings).

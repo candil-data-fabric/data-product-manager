@@ -1,0 +1,169 @@
+// SUCCESSFUL RESPONSE: HTTP 201 CREATED WITH APPLICATION/JSON
+{
+    "message": "Data product onboarded successfully.",
+    "data_product": {
+        "_id": "Generated Data Product ID, in UUID4 format.",
+        "name": "Data Product Name, as provided during onboarding process.",
+        "description": "Data Product Description, as provided during onboarding process.",
+        "owner": "Data Product Owner, as provided during onboarding process.",
+        "glossary_terms": [
+            "Term 1 URI", "Term 2 URI", "Term N URI"
+        ],
+        "tags": [
+            "Tag 1", "Tag 2", "Tag N"
+        ],
+        "data_source_type": "This can be: BATCH_FILE or BATCH_RELATIONAL_DATABASE or STREAMING_KAFKA or STREAMING_MQTT.",
+        // TRANSLATION INFO WHEN NO SEMANTIC TRANSLATION DEFINED:
+        "translation": {
+            "defined": "no"
+        },
+        // TRANSLATION INFO WHEN SEMANTIC TRANSLATION IS ONLY DEFINED FROM SOURCE TO CENTRAL:
+        "translation": {
+            "defined": "yes",
+            "source_to_central": "yes",
+            "central_to_target": "no",
+            "settings": {
+                "chanType": "KK",
+                "source": "Kafka topic used by the Semantic Translator for reading RDF triples - configured at the Data Product Manager.",
+                "inpAlignmentName": "Alignment name.",
+                "inpAlignmentVersion": "Alignment version.",
+                "outAlignmentName": "",
+                "outAlignmentVersion": "",
+                "sink": "Kafka topic used by the Semantic Translator for writing resulting RDF triples - configured at the Data Product Manager.",
+                "parallelism": 0
+            }
+        },
+        // TRANSLATION INFO WHEN SEMANTIC TRANSLATION IS ONLY DEFINED FROM CENTRAL TO TARGET:
+        "translation": {
+            "defined": "yes",
+            "source_to_central": "no",
+            "central_to_target": "yes",
+            "settings": {
+                "chanType": "KK",
+                "source": "Kafka topic used by the Semantic Translator for reading RDF triples - configured at the Data Product Manager.",
+                "inpAlignmentName": "",
+                "inpAlignmentVersion": "",
+                "outAlignmentName": "Alignment name.",
+                "outAlignmentVersion": "Alignment version.",
+                "sink": "Kafka topic used by the Semantic Translator for writing resulting RDF triples - configured at the Data Product Manager.",
+                "parallelism": 0
+            }
+        },
+        // TRANSLATION INFO WHEN SEMANTIC TRANSLATION IS DEFINED FROM SOURCE TO CENTRAL AND FROM CENTRAL TO TARGET:
+        "translation": {
+            "defined": "yes",
+            "source_to_central": "yes",
+            "central_to_target": "yes",
+            "settings": {
+                "chanType": "KK",
+                "source": "Kafka topic used by the Semantic Translator for reading RDF triples - configured at the Data Product Manager.",
+                "inpAlignmentName": "Alignment name.",
+                "inpAlignmentVersion": "Alignment version.",
+                "outAlignmentName": "Alignment name.",
+                "outAlignmentVersion": "Alignment version.",
+                "sink": "Kafka topic used by the Semantic Translator for writing resulting RDF triples - configured at the Data Product Manager.",
+                "parallelism": 0
+            }
+        },
+        // DETAILS ARE ALWAYS PRESENT:
+        "details": {
+            "output_kafka_topic": "Kafka topic where RDF triples will be written to - ONLY PRESENT WHEN NO SEMANTIC TRANSLATION IS DEFINED.",
+            "pre_translation_output_kafka_topic": "Kafka topic where RDF triples will be written BEFORE TRANSLATION - ONLY PRESENT WHEN SEMANTIC TRANSLATION IS DEFINED.",
+            "post_translation_output_kafka_topic": "Kafka topic where RDF triples will be written AFTER TRANSLATION - ONLY PRESENT WHEN SEMANTIC TRANSLATION IS DEFINED.",
+            // ONLY FOR BATCH DATA PRODUCTS:
+            "db_url": "Database URL - ONLY PRESENT FOR BATCH_RELATIONAL_DATABASE DATA PRODUCTS.",
+            "file_path": "File path - ONLY PRESENT FOR BATCH_FILE DATA PRODUCTS.",
+            "freshness": {
+                "enabled": "true or false whether or not freshness is defined.",
+                "schedule": "Crontab/cronjob format."
+            },
+            // ONLY FOR STREAMING DATA PRODUCTS:
+            "metadata": {
+                "name": "Data Product Name, as provided during onboarding process.",
+                "author": "Literal String: Data Product Manager",
+                "description": "Data Product Description, as provided during onboarding process.",
+                "tags": [
+                    "Tag 1", "Tag 2", "Tag N"
+                ],
+                "mapping": {
+                    "name": "Literal String: Mappings",
+                    "author": "Literal String: Data Product Manager",
+                    "inputFormat": "Input format, as defined during the onboarding process.",
+                    "outputFormat": "Output format, configurable at the Data Product Manager.",
+                    "rml": "Literal content of the RML file that contains mapping rules."
+                }
+            },
+            "settings": {
+                "channelId": "Same ID as generated for the Data Product, in UUID4 format.",
+                "inputTopicSettings": {
+                    "topic": "Name of the topic where the Semantic Annotator will read input data from.",
+                    // IF INPUT DATA IS COMING FROM AN MQTT SOURCE:
+                    "brokerType": "Literal String: MQTT",
+                    "mqttSettings": {
+                        "protocol": "Protocol used by the Semantic Annotator for communicating with the MQTT broker. Literal String: TCP or UDP",
+                        "host": "Hostname where the MQTT broker is reachable for the Semantic Annotator.",
+                        "port": "Port number (INTEGER) where the MQTT broker is reachable for the Semantic Annotator.",
+                        "clientId": "Optional - client ID used by the Semantic Annotator when communicating with the MQTT broker.",
+                        "user": "Optional - username used by the Semantic Annotator when connecting with the MQTT broker.",
+                        "password": "Optional - password used by the Semantic Annotator when connecting with the MQTT broker."
+                    },
+                    // IF INPUT DATA IS COMING FROM A KAFKA SOURCE:
+                    "brokerType": "Literal String: KAFKA",
+                    "kafkaSettings": {
+                        "host": "Hostname where the Kafka broker is reachable for the Semantic Annotator.",
+                        "port": "Port number (INTEGER) where the Kafka broker is reachable for the Semantic Annotator.",
+                        "groupId": "Optional - group ID used by the Semantic Annotator when communicating with the Kafka broker. Configurable at the Data Product Manager."
+                    }
+                },
+                "outputTopicSettings": {
+                    "topic": "Kafka topic where RDF triples will be written to.",
+                    "brokerType": "Literal String: KAFKA",
+                    "kafkaSettings": {
+                        "host": "Hostname where the Kafka broker is reachable for the Semantic Annotator.",
+                        "port": "Port number (INTEGER) where the Kafka broker is reachable for the Semantic Annotator.",
+                        "groupId": "Optional - group ID used by the Semantic Annotator when communicating with the Kafka broker. Configurable at the Data Product Manager."
+                    }
+                },
+                // IF INPUT MONITOR TOPIC IS ENABLED FOR THE SEMANTIC ANNOTATOR (CONFIGURABLE AT THE DATA PRODUCT MANAGER):
+                "monitorInputTopicSettings": {
+                    "topic": "Kafka topic where monitor messages will be written to. Configurable at the Data Product Manager.",
+                    "brokerType": "Literal String: KAFKA",
+                    "kafkaSettings": {
+                        "host": "Hostname where the Kafka broker is reachable for the Semantic Annotator.",
+                        "port": "Port number (INTEGER) where the Kafka broker is reachable for the Semantic Annotator.",
+                        "groupId": "Optional - group ID used by the Semantic Annotator when communicating with the Kafka broker. Configurable at the Data Product Manager."
+                    }
+                },
+                // IF OUTPUT MONITOR TOPIC IS ENABLED FOR THE SEMANTIC ANNOTATOR (CONFIGURABLE AT THE DATA PRODUCT MANAGER):
+                "monitorOutputTopicSettings": {
+                    "topic": "Kafka topic where monitor messages will be written to. Configurable at the Data Product Manager.",
+                    "brokerType": "Literal String: KAFKA",
+                    "kafkaSettings": {
+                        "host": "Hostname where the Kafka broker is reachable for the Semantic Annotator.",
+                        "port": "Port number (INTEGER) where the Kafka broker is reachable for the Semantic Annotator.",
+                        "groupId": "Optional - group ID used by the Semantic Annotator when communicating with the Kafka broker. Configurable at the Data Product Manager."
+                    }
+                },
+                // IF ERROR TOPIC IS ENABLED FOR THE SEMANTIC ANNOTATOR (CONFIGURABLE AT THE DATA PRODUCT MANAGER):
+                "errorTopicSettings": {
+                    "topic": "Kafka topic where error messages will be written to. Configurable at the Data Product Manager.",
+                    "brokerType": "Literal String: KAFKA",
+                    "kafkaSettings": {
+                        "host": "Hostname where the Kafka broker is reachable for the Semantic Annotator.",
+                        "port": "Port number (INTEGER) where the Kafka broker is reachable for the Semantic Annotator.",
+                        "groupId": "Optional - group ID used by the Semantic Annotator when communicating with the Kafka broker. Configurable at the Data Product Manager."
+                    }
+                }
+            },
+            "status": {
+                "isStopped": "false",
+                "inputTopicEnabled": "true",
+                "outputTopicEnabled": "false",
+                "inputMonitorTopicEnabled": "true is enabled, false otherwise.",
+                "outputMonitorTopicEnabled": "true is enabled, false otherwise.",
+                "errorTopicEnabled": "true is enabled, false otherwise."
+            }
+        },
+        "creationTimestamp": "String, timestamp of data product creation. Relative to UTC/Zulu time. Format: %Y-%m-%dT%H:%M:%S.%fZ"
+    }
+}
