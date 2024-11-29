@@ -2,9 +2,11 @@
   "details": {
     "name": "Test",
     "description": "Test streaming source data product",
+    "owner": "Test owner",
+    "glossary_terms": ["test", "streaming"],
     "tags": ["test", "streaming"],
     "input_format": "XML",
-    "input_topic": "seaman-input",
+    "input_topic": "semann-input",
     "data_source_type": "STREAMING_KAFKA",
     "host": "kafka.default.svc.cluster.local",
     "port": 9092
