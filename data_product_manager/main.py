@@ -1,5 +1,5 @@
 __name__ = "Data Product Manager"
-__version__ = "3.0.0"
+__version__ = "3.1.0"
 __author__ = [
     "Lucía Cabanillas Rodríguez",
     "David Martínez García"
@@ -31,7 +31,7 @@ import os
 from pydantic import BaseModel, Field, model_validator
 import pymongo
 import requests
-from typing import Literal, Union
+from typing import Any, Literal, Union
 import uuid
 
 ## -- END IMPORT STATEMENTS -- ##
@@ -224,6 +224,164 @@ class DataSource(BaseModel):
         if isinstance(value, str):
             return cls(**json.loads(value))
         return value
+
+class DataProductTranslationSettings(BaseModel):
+    '''
+    Specific model for storing the translation settings of a data product.
+    '''
+
+    chanType: str
+    source: str
+    inpAlignmentName: str
+    inpAlignmentVersion: str
+    outAlignmentName: str
+    outAlignmentVersion: str
+    sink: str
+    parallelism: int
+    channelId: str
+    descId: str
+
+class DataProductTranslation(BaseModel):
+    '''
+    Specific model for storing the translation information of a data product.
+    '''
+
+    defined: str
+    source_to_central: Union[str, None]
+    central_to_target: Union[str, None]
+    settings: Union[DataProductTranslationSettings, None]
+
+class BatchDataProductFreshness(BaseModel):
+    '''
+    Specific model for storing the freshness details of a batch data product.
+    '''
+
+    enabled: bool
+    schedule: Union[str, None]
+
+class StreamingDataProductMappingMetadata(BaseModel):
+    '''
+    Specific model for storing mapping metadata details of a streaming data product.
+    '''
+
+    name: str
+    author: str
+    inputFormat: str
+    outputFormat: str
+    rml: str
+
+class StreamingDataProductMetadata(BaseModel):
+    '''
+    Specific model for storing metadata details of a streaming data product.
+    '''
+
+    name: str
+    author: str
+    description: str
+    tags: list[str]
+    mapping: StreamingDataProductMappingMetadata
+
+class StreamingDataProductKafkaBrokerSettings(BaseModel):
+    '''
+    Specific model for storing Kafka broker settings of a streaming data product.
+    '''
+
+    host: str
+    port: int
+    groupId: str
+
+class StreamingDataProductMqttBrokerSettings(BaseModel):
+    '''
+    Specific model for storing MQTT broker settings of a streaming data product.
+    '''
+
+    protocol: str
+    host: str
+    port: int
+    clientId: str
+    user: str
+    password: str
+
+class StreamingDataProductTopicSettings(BaseModel):
+    '''
+    Specific model for storing topic settings of a streaming data product.
+    '''
+
+    topic: str
+    brokerType: str
+    kafkaSettings: Union[StreamingDataProductKafkaBrokerSettings, None]
+    mqttSettings: Union[StreamingDataProductMqttBrokerSettings, None]
+
+class StreamingDataProductSettings(BaseModel):
+    '''
+    Specific model for storing settings of a streaming data product.
+    '''
+
+    channelId: str
+    inputTopicSettings: StreamingDataProductTopicSettings
+    outputTopicSettings: StreamingDataProductTopicSettings
+    monitorInputTopicSettings: StreamingDataProductTopicSettings
+    monitorOutputTopicSettings: StreamingDataProductTopicSettings
+    errorTopicSettings: StreamingDataProductTopicSettings
+
+class StreamingDataProductStatus(BaseModel):
+    '''
+    Specific model for storing the status of a streaming data product.
+    '''
+
+    isStopped: bool
+    inputTopicEnabled: bool
+    outputTopicEnabled: bool
+    inputMonitorTopicEnabled: bool
+    outputMonitorTopicEnabled: bool
+    errorTopicEnabled: bool
+
+class DataProductDetails(BaseModel):
+    '''
+    Specific model for storing the details of a data product.
+    '''
+
+    output_kafka_topic: Union[str, None]
+    pre_translation_output_kafka_topic: Union[str, None]
+    post_translation_output_kafka_topic: Union[str, None]
+    db_url: Union[str, None] # Only for batch data products.
+    file_path: Union[str, None] # Only for batch data products.
+    freshness: Union[BatchDataProductFreshness, None] # Only for batch data products.
+    metadata: Union[StreamingDataProductMetadata, None] # Only for streaming data products.
+    settings: Union[StreamingDataProductSettings, None] # Only for streaming data products.
+    status: Union[StreamingDataProductStatus, None] # Only for streaming data products.
+
+class GetDataProductResponse(BaseModel):
+    '''
+    Specific model that is returned on a successful retrieval of information of data products.
+    This model is also returned when successfully creating a new data product.
+    '''
+
+    _id: str
+    name: str
+    description: str
+    owner: str
+    glossary_terms: list[str]
+    tags: list[str]
+    data_source_type: str
+    translation: DataProductTranslation
+    details: DataProductDetails
+    creationTimestamp: str
+
+class PostDataProductResponse(BaseModel):
+    '''
+    Specific model that is returned on a successful creation of a data product.
+    '''
+    
+    message: str
+    data_product: GetDataProductResponse
+
+class DeleteDataProductResponse(BaseModel):
+    '''
+    Specific model that is returned on a successful deletion of one or all data products.
+    '''
+
+    message: str
 
 ## -- END DEFINITION OF PYDANTIC MODELS -- ##
 
@@ -894,16 +1052,24 @@ app = FastAPI(
 @app.get(
         path = "/dataProducts",
         description = "Retrieve all data products.",
-        tags = ["Read"]
+        tags = ["Read"],
+        responses = {
+            200: {
+                "model": list[GetDataProductResponse]
+            },
+            204: {
+                "model": None
+            }
+        }
 )
-async def get_data_products(request: Request):
+async def get_data_products(request: Request) -> Any:
     '''
     FastAPI request handler function: HTTP GET /dataProducts.
     '''
 
     print("\n")
     logger.info("Received GET request to access /dataProducts resource from " + request.client.host + ":" + str(request.client.port) + ".")
-    logger.info("Request is for retrieving all existing Data Products.")
+    logger.info("Request is for retrieving all existing data products.")
 
     data_products = list(mongodb_collection.find())
     if len(data_products) == 0:
@@ -914,7 +1080,15 @@ async def get_data_products(request: Request):
 @app.get(
         path = "/dataProducts/{data_product_id}", 
         description = "Retrieve data product by passing its ID.",
-        tags = ["Read"]
+        tags = ["Read"],
+        responses = {
+            200: {
+                "model": GetDataProductResponse
+            },
+            204: {
+                "model": None
+            }
+        }
 )
 async def get_data_product(request: Request, data_product_id: str):
     '''
@@ -923,7 +1097,7 @@ async def get_data_product(request: Request, data_product_id: str):
     
     print("\n")
     logger.info("Received GET request to access /dataProducts resource from " + request.client.host + ":" + str(request.client.port) + ".")
-    logger.info("Request is for retrieving the Data Product with ID: " + data_product_id + ".")
+    logger.info("Request is for retrieving the data product with ID: " + data_product_id + ".")
 
     data_product = list(mongodb_collection.find({"_id": data_product_id}))
     if len(data_product) == 0:
@@ -937,8 +1111,13 @@ async def get_data_product(request: Request, data_product_id: str):
             Mappings file can be RML or YARRRML for batch data sources and MUST BE CARML for streaming data sources.\
             Optional translation files (alignment files) must be XML.\
             If no translation files are provided, semantic translation will not be used.\
-            If any of the translation files is not provided, the IDENTITY alignment will then be used.",
-        tags = ["Create"]
+            If one of the translation files is not provided, the IDENTITY alignment will then be used for the associated process.",
+        tags = ["Create"],
+        responses = {
+            201: {
+                "model": PostDataProductResponse
+            }
+        }
 )
 async def post_data_product(
     request: Request,
@@ -953,8 +1132,8 @@ async def post_data_product(
 
     print("\n")
     logger.info("Received POST request to access /dataProducts resource from " + request.client.host + ":" + str(request.client.port) + ".")
-    logger.info("Request is for onboarding a new Data Product.")
-    logger.info("Data Product details:")
+    logger.info("Request is for onboarding a new data product.")
+    logger.info("Data product details:")
     logger.info(data_source.model_dump_json(indent=4))
 
     mappings_content = await mappings_file.read()
@@ -1077,7 +1256,15 @@ async def post_data_product(
 @app.delete(
         path = "/dataProducts",
         description = "Delete all data products.",
-        tags = ["Delete"]
+        tags = ["Delete"],
+        responses = {
+            200: {
+                "model": DeleteDataProductResponse
+            },
+            204: {
+                "model": None
+            }
+        }
 )
 async def delete_data_products(request: Request):
     '''
@@ -1086,7 +1273,7 @@ async def delete_data_products(request: Request):
 
     print("\n")
     logger.info("Received DELETE request to access /dataProducts resource from " + request.client.host + ":" + str(request.client.port) + ".")
-    logger.info("Request is for deleting all existing Data Products.")
+    logger.info("Request is for deleting all existing data products.")
 
     data_products = list(mongodb_collection.find())
     if len(data_products) == 0:
@@ -1109,12 +1296,20 @@ async def delete_data_products(request: Request):
             elif "STREAMING" in data_product["data_source_type"]:
                 delete_streaming_data_product(data_product["_id"])
         mongodb_collection.delete_many({})
-        return Response(status_code = status.HTTP_204_NO_CONTENT)
+        return JSONResponse(status_code = status.HTTP_200_OK, content = {"message": "All data products have been successfully deleted."})
 
 @app.delete(
         path = "/dataProducts/{data_product_id}",
         description = "Delete data product by passing its ID.",
-        tags = ["Delete"]
+        tags = ["Delete"],
+        responses = {
+            200: {
+                "model": DeleteDataProductResponse
+            },
+            204: {
+                "model": None
+            }
+        }
 )
 async def delete_data_product(request: Request, data_product_id: str):
     '''
@@ -1123,7 +1318,7 @@ async def delete_data_product(request: Request, data_product_id: str):
 
     print("\n")
     logger.info("Received DELETE request to access /dataProducts resource from " + request.client.host + ":" + str(request.client.port) + ".")
-    logger.info("Request is for deleting the Data Product with ID: " + data_product_id + ".")
+    logger.info("Request is for deleting the data product with ID: " + data_product_id + ".")
 
     data_product = list(mongodb_collection.find({"_id": data_product_id}))
     if len(data_product) == 0:
@@ -1146,6 +1341,6 @@ async def delete_data_product(request: Request, data_product_id: str):
         elif "STREAMING" in data_product["data_source_type"]:
             delete_streaming_data_product(data_product_id)
         mongodb_collection.delete_one({"_id": data_product_id})
-        return Response(status_code=status.HTTP_204_NO_CONTENT)
+        return JSONResponse(status_code=status.HTTP_200_OK, content = {"message": "Data product " + data_product_id + " has been successfully deleted."})
 
 ## -- END MAIN CODE -- ##
