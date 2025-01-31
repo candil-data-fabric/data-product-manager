@@ -1,5 +1,5 @@
 __name__ = "Data Product Manager"
-__version__ = "3.1.0"
+__version__ = "3.1.1"
 __author__ = [
     "Lucía Cabanillas Rodríguez",
     "David Martínez García"
@@ -357,7 +357,7 @@ class GetDataProductResponse(BaseModel):
     This model is also returned when successfully creating a new data product.
     '''
 
-    _id: str
+    id: str = Field(alias = "_id") # Match with _id (primary key) in MongoDB.
     name: str
     description: str
     owner: str
@@ -1082,10 +1082,10 @@ async def get_data_products(request: Request) -> Any:
         description = "Retrieve data product by passing its ID.",
         tags = ["Read"],
         responses = {
-            200: {
+            status.HTTP_200_OK: {
                 "model": GetDataProductResponse
             },
-            204: {
+            status.HTTP_204_NO_CONTENT: {
                 "model": None
             }
         }
@@ -1113,8 +1113,9 @@ async def get_data_product(request: Request, data_product_id: str):
             If no translation files are provided, semantic translation will not be used.\
             If one of the translation files is not provided, the IDENTITY alignment will then be used for the associated process.",
         tags = ["Create"],
+        status_code = status.HTTP_201_CREATED,
         responses = {
-            201: {
+            status.HTTP_201_CREATED: {
                 "model": PostDataProductResponse
             }
         }
@@ -1258,10 +1259,10 @@ async def post_data_product(
         description = "Delete all data products.",
         tags = ["Delete"],
         responses = {
-            200: {
+            status.HTTP_200_OK: {
                 "model": DeleteDataProductResponse
             },
-            204: {
+            status.HTTP_204_NO_CONTENT: {
                 "model": None
             }
         }
@@ -1303,10 +1304,10 @@ async def delete_data_products(request: Request):
         description = "Delete data product by passing its ID.",
         tags = ["Delete"],
         responses = {
-            200: {
+            status.HTTP_200_OK: {
                 "model": DeleteDataProductResponse
             },
-            204: {
+            status.HTTP_204_NO_CONTENT: {
                 "model": None
             }
         }
