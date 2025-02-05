@@ -1,5 +1,5 @@
 __name__ = "Data Product Manager"
-__version__ = "3.1.1"
+__version__ = "3.2.0"
 __author__ = [
     "Lucía Cabanillas Rodríguez",
     "David Martínez García"
@@ -646,15 +646,17 @@ def onboard_batch_data_product(data_source: DataSource, mappings_file: UploadFil
         except ValueError:
             raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = "Invalid crontab/cronjob format for freshness.")
 
-    configmap_mappings_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source.details.name + "-" + "configmap-mappings"
-    configmap_config_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source.details.name + "-" + "configmap-config"
+    data_source_normalized_name = data_source.details.name.lower().replace(" ", "_")
+
+    configmap_mappings_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source_normalized_name + "-" + "configmap-mappings"
+    configmap_config_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source_normalized_name + "-" + "configmap-config"
     mappings_file_name = mappings_file.filename
     mappings_file_name_splitted = mappings_file_name.split(".")
     # name_mappings_file_splitted[0] is the original name of the file without the extension.
     # name_mappings_file_splitted[1] is the file extension.
-    mappings_file_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source.details.name + "-" + "mappings" + "." + mappings_file_name_splitted[1]
-    job_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source.details.name + "-" + "job"
-    config_file_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source.details.name + "-" + "config" + "." + "ini"
+    mappings_file_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source_normalized_name + "-" + "mappings" + "." + mappings_file_name_splitted[1]
+    job_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source_normalized_name + "-" + "job"
+    config_file_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source_normalized_name + "-" + "config" + "." + "ini"
 
     configuration = translate_to_ini(data_source, kafka_topic, mappings_file_name, config_file_name)
 
@@ -675,7 +677,7 @@ def onboard_batch_data_product(data_source: DataSource, mappings_file: UploadFil
         }
     )
 
-    helm_release_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source.details.name
+    helm_release_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source_normalized_name
 
     try:
         k8s_client.create_namespaced_config_map(
