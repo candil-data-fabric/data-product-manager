@@ -1,5 +1,5 @@
 __name__ = "Data Product Manager"
-__version__ = "3.2.0"
+__version__ = "3.3.0"
 __author__ = [
     "Lucía Cabanillas Rodríguez",
     "David Martínez García"
@@ -65,6 +65,7 @@ HELM_REPO_URL = os.getenv("HELM_REPO_URL")
 ### DATA FABRIC KAFKA BROKER INFORMATION ###
 
 KAFKA_BROKER = os.getenv("KAFKA_BROKER")
+# KAFKA_TOPIC is the topic where final RDF triples are written to.
 KAFKA_TOPIC = os.getenv("KAFKA_TOPIC")
 KAFKA_GROUP_ID = os.getenv("KAFKA_GROUP_ID", None)
 
@@ -631,7 +632,7 @@ def onboard_batch_data_product(data_source: DataSource, mappings_file: UploadFil
     Morph-KGC --> KAFKA_TOPIC
 
     * WITH SEMANTIC TRANSLATION:
-    Morph-KGC --> SEMANTIC_TRANSLATOR_SOURCE_TOPIC <-- Semantic Translator --> KAFKA_TOPIC
+    Morph-KGC --> SEMANTIC_TRANSLATOR_SOURCE_TOPIC + "-" + DATA_PRODUCT_NAME <-- Semantic Translator --> KAFKA_TOPIC
 
     It returns a dictionary object with the data product details if all operations are successful. In any other case,
     an HTTPException is raised.
@@ -646,17 +647,15 @@ def onboard_batch_data_product(data_source: DataSource, mappings_file: UploadFil
         except ValueError:
             raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = "Invalid crontab/cronjob format for freshness.")
 
-    data_source_normalized_name = data_source.details.name.lower().replace(" ", "_")
-
-    configmap_mappings_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source_normalized_name + "-" + "configmap-mappings"
-    configmap_config_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source_normalized_name + "-" + "configmap-config"
+    configmap_mappings_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_product["name"] + "-" + "configmap-mappings"
+    configmap_config_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_product["name"] + "-" + "configmap-config"
     mappings_file_name = mappings_file.filename
     mappings_file_name_splitted = mappings_file_name.split(".")
     # name_mappings_file_splitted[0] is the original name of the file without the extension.
     # name_mappings_file_splitted[1] is the file extension.
-    mappings_file_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source_normalized_name + "-" + "mappings" + "." + mappings_file_name_splitted[1]
-    job_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source_normalized_name + "-" + "job"
-    config_file_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source_normalized_name + "-" + "config" + "." + "ini"
+    mappings_file_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_product["name"] + "-" + "mappings" + "." + mappings_file_name_splitted[1]
+    job_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_product["name"] + "-" + "job"
+    config_file_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_product["name"] + "-" + "config" + "." + "ini"
 
     configuration = translate_to_ini(data_source, kafka_topic, mappings_file_name, config_file_name)
 
@@ -677,7 +676,7 @@ def onboard_batch_data_product(data_source: DataSource, mappings_file: UploadFil
         }
     )
 
-    helm_release_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_source_normalized_name
+    helm_release_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_product["name"]
 
     try:
         k8s_client.create_namespaced_config_map(
@@ -728,7 +727,7 @@ def onboard_streaming_data_product(data_source: DataSource, mappings_content: by
     Semantic Annotator --> KAFKA_TOPIC
 
     * WITH SEMANTIC TRANSLATION:
-    Semantic Annotator --> SEMANTIC_TRANSLATOR_SOURCE_TOPIC <-- Semantic Translator --> KAFKA_TOPIC
+    Semantic Annotator --> SEMANTIC_TRANSLATOR_SOURCE_TOPIC + "-" + "DATA_PRODUCT_NAME" <-- Semantic Translator --> KAFKA_TOPIC
 
     It returns a dictionary object with the data product details in case the request is successful. In any other case, an HTTPException is raised
     with the response details given by the Semantic Annotator.
@@ -738,13 +737,10 @@ def onboard_streaming_data_product(data_source: DataSource, mappings_content: by
 
     body = {}
     body["metadata"] = {}
-    if data_source.details.name is not None:
-        body["metadata"]["name"] = data_source.details.name
+    body["metadata"]["name"] = data_product["name"]
     body["metadata"]["author"] = "Data Product Manager"
-    if data_source.details.description is not None:
-        body["metadata"]["description"] = data_source.details.description
-    if data_source.details.tags is not None:
-        body["metadata"]["tags"] = data_source.details.tags
+    body["metadata"]["description"] = data_product["description"]
+    body["metadata"]["tags"] = data_product["tags"]
     body["metadata"]["mapping"] = {}
     body["metadata"]["mapping"]["name"] = "Mappings"
     body["metadata"]["mapping"]["author"] = "Data Product Manager"
@@ -1144,17 +1140,18 @@ async def post_data_product(
     data_product = {}
     data_product["_id"] = str(uuid.uuid4())
     if data_source.details.name is not None:
-        data_product["name"] = data_source.details.name
+        # Name is "normalized": transformed to lower-case, replacing white spaces with underscores.
+        data_product["name"] = data_source.details.name.lower().replace(" ", "_")
     else:
-        data_product["name"] = "Default"
+        data_product["name"] = "default"
     if data_source.details.description is not None:
         data_product["description"] = data_source.details.description
     else:
-        data_product["description"] = "Default Data Product"
+        data_product["description"] = "Default Data Product - Description not provided"
     if data_source.details.owner is not None:
         data_product["owner"] = data_source.details.owner
     else:
-        data_product["owner"] = "Default Data Product Owner"
+        data_product["owner"] = "Data Product Manager"
     if data_source.details.glossary_terms is not None:
         data_product["glossary_terms"] = data_source.details.glossary_terms
     else:
@@ -1183,7 +1180,7 @@ async def post_data_product(
         await translation_source_to_central_file.close()
         translation_channel_settings = {
             "chanType": "KK",
-            "source": SEMANTIC_TRANSLATOR_SOURCE_TOPIC,
+            "source": SEMANTIC_TRANSLATOR_SOURCE_TOPIC + "-" + data_product["name"],
             "inpAlignmentName": input_alignment_details["name"],
             "inpAlignmentVersion": input_alignment_details["version"],
             "outAlignmentName": "",
@@ -1192,8 +1189,8 @@ async def post_data_product(
             "parallelism": 0
         }
         data_product = create_translation_channel(translation_channel_settings, data_product)
-        data_product_output_kafka_topic = SEMANTIC_TRANSLATOR_SOURCE_TOPIC
-        data_product["details"]["pre_translation_output_kafka_topic"] = SEMANTIC_TRANSLATOR_SOURCE_TOPIC
+        data_product_output_kafka_topic = SEMANTIC_TRANSLATOR_SOURCE_TOPIC + "-" + data_product["name"]
+        data_product["details"]["pre_translation_output_kafka_topic"] = SEMANTIC_TRANSLATOR_SOURCE_TOPIC + "-" + data_product["name"]
         data_product["details"]["post_translation_output_kafka_topic"] = KAFKA_TOPIC
     if (translation_source_to_central_file is None) and (translation_central_to_target_file is not None):
         # Semantic translation is required from central to target.
@@ -1206,7 +1203,7 @@ async def post_data_product(
         await translation_central_to_target_file.close()
         translation_channel_settings = {
             "chanType": "KK",
-            "source": SEMANTIC_TRANSLATOR_SOURCE_TOPIC,
+            "source": SEMANTIC_TRANSLATOR_SOURCE_TOPIC + "-" + data_product["name"],
             "inpAlignmentName": "",
             "inpAlignmentVersion": "",
             "outAlignmentName": output_alignment_details["name"],
@@ -1215,8 +1212,8 @@ async def post_data_product(
             "parallelism": 0
         }
         data_product = create_translation_channel(translation_channel_settings, data_product)
-        data_product_output_kafka_topic = SEMANTIC_TRANSLATOR_SOURCE_TOPIC
-        data_product["details"]["pre_translation_output_kafka_topic"] = SEMANTIC_TRANSLATOR_SOURCE_TOPIC
+        data_product_output_kafka_topic = SEMANTIC_TRANSLATOR_SOURCE_TOPIC + "-" + data_product["name"]
+        data_product["details"]["pre_translation_output_kafka_topic"] = SEMANTIC_TRANSLATOR_SOURCE_TOPIC + "-" + data_product["name"]
         data_product["details"]["post_translation_output_kafka_topic"] = KAFKA_TOPIC
     if (translation_source_to_central_file is not None) and (translation_central_to_target_file is not None):
         # Semantic translation is required from source to central and from central to target.
@@ -1232,7 +1229,7 @@ async def post_data_product(
         await translation_central_to_target_file.close()
         translation_channel_settings = {
             "chanType": "KK",
-            "source": SEMANTIC_TRANSLATOR_SOURCE_TOPIC,
+            "source": SEMANTIC_TRANSLATOR_SOURCE_TOPIC + "-" + data_product["name"],
             "inpAlignmentName": input_alignment_details["name"],
             "inpAlignmentVersion": input_alignment_details["version"],
             "outAlignmentName": output_alignment_details["name"],
@@ -1241,8 +1238,8 @@ async def post_data_product(
             "parallelism": 0
         }
         data_product = create_translation_channel(translation_channel_settings, data_product)
-        data_product_output_kafka_topic = SEMANTIC_TRANSLATOR_SOURCE_TOPIC
-        data_product["details"]["pre_translation_output_kafka_topic"] = SEMANTIC_TRANSLATOR_SOURCE_TOPIC
+        data_product_output_kafka_topic = SEMANTIC_TRANSLATOR_SOURCE_TOPIC + "-" + data_product["name"]
+        data_product["details"]["pre_translation_output_kafka_topic"] = SEMANTIC_TRANSLATOR_SOURCE_TOPIC + "-" + data_product["name"]
         data_product["details"]["post_translation_output_kafka_topic"] = KAFKA_TOPIC
 
     if isinstance(data_source.details, BatchDataSource):
