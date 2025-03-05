@@ -1,5 +1,5 @@
 __name__ = "Data Product Manager"
-__version__ = "3.3.1"
+__version__ = "3.3.2"
 __author__ = [
     "Lucía Cabanillas Rodríguez",
     "David Martínez García"
@@ -89,6 +89,7 @@ SEMANTIC_ANNOTATOR_OUTPUT_MONITOR_TOPIC_ENABLED = os.getenv("SEMANTIC_ANNOTATOR_
 SEMANTIC_ANNOTATOR_ERROR_TOPIC = os.getenv("SEMANTIC_ANNOTATOR_ERROR_TOPIC")
 SEMANTIC_ANNOTATOR_INPUT_MONITOR_TOPIC = os.getenv("SEMANTIC_ANNOTATOR_INPUT_MONITOR_TOPIC")
 SEMANTIC_ANNOTATOR_OUTPUT_MONITOR_TOPIC = os.getenv("SEMANTIC_ANNOTATOR_OUTPUT_MONITOR_TOPIC")
+# When translation is enabled, the output format used by the Semantic Annotator will always be JSONLD (JSON-LD).
 SEMANTIC_ANNOTATOR_OUTPUT_FORMAT = os.getenv("SEMANTIC_ANNOTATOR_OUTPUT_FORMAT")
 
 ### --- ###
@@ -712,7 +713,7 @@ def onboard_batch_data_product(data_source: DataSource, mappings_file: UploadFil
 
     return data_product
 
-def onboard_streaming_data_product(data_source: DataSource, mappings_content: bytes, kafka_topic: str, data_product: dict) -> dict:
+def onboard_streaming_data_product(data_source: DataSource, mappings_content: bytes, kafka_topic: str, translation_enabled: bool, data_product: dict) -> dict:
     '''
     Auxiliary function: onboard_streaming_data_product.
 
@@ -745,7 +746,10 @@ def onboard_streaming_data_product(data_source: DataSource, mappings_content: by
     body["metadata"]["mapping"]["name"] = "Mappings"
     body["metadata"]["mapping"]["author"] = "Data Product Manager"
     body["metadata"]["mapping"]["inputFormat"] = data_source.details.input_format
-    body["metadata"]["mapping"]["outputFormat"] = SEMANTIC_ANNOTATOR_OUTPUT_FORMAT
+    if (translation_enabled == False):
+        body["metadata"]["mapping"]["outputFormat"] = SEMANTIC_ANNOTATOR_OUTPUT_FORMAT
+    else:
+        body["metadata"]["mapping"]["outputFormat"] = "JSONLD"
     body["metadata"]["mapping"]["rml"] = mappings_content.decode("utf-8")
     body["settings"] = {}
     body["settings"]["channelId"] = data_product["_id"]
@@ -1137,6 +1141,8 @@ async def post_data_product(
 
     mappings_content = await mappings_file.read()
 
+    translation_enabled = False
+
     data_product = {}
     data_product["_id"] = str(uuid.uuid4())
     if data_source.details.name is not None:
@@ -1169,6 +1175,7 @@ async def post_data_product(
         data_product["translation"]["defined"] = "no"
         data_product_output_kafka_topic = KAFKA_TOPIC
         data_product["details"]["output_kafka_topic"] = KAFKA_TOPIC
+        translation_enabled = False
     if (translation_source_to_central_file is not None) and (translation_central_to_target_file is None):
         # Semantic translation is required from source to central.
         data_product["translation"]["defined"] = "yes"
@@ -1192,6 +1199,7 @@ async def post_data_product(
         data_product_output_kafka_topic = SEMANTIC_TRANSLATOR_SOURCE_TOPIC + "-" + data_product["name"]
         data_product["details"]["pre_translation_output_kafka_topic"] = SEMANTIC_TRANSLATOR_SOURCE_TOPIC + "-" + data_product["name"]
         data_product["details"]["post_translation_output_kafka_topic"] = KAFKA_TOPIC
+        translation_enabled = True
     if (translation_source_to_central_file is None) and (translation_central_to_target_file is not None):
         # Semantic translation is required from central to target.
         data_product["translation"]["defined"] = "yes"
@@ -1215,6 +1223,7 @@ async def post_data_product(
         data_product_output_kafka_topic = SEMANTIC_TRANSLATOR_SOURCE_TOPIC + "-" + data_product["name"]
         data_product["details"]["pre_translation_output_kafka_topic"] = SEMANTIC_TRANSLATOR_SOURCE_TOPIC + "-" + data_product["name"]
         data_product["details"]["post_translation_output_kafka_topic"] = KAFKA_TOPIC
+        translation_enabled = True
     if (translation_source_to_central_file is not None) and (translation_central_to_target_file is not None):
         # Semantic translation is required from source to central and from central to target.
         data_product["translation"]["defined"] = "yes"
@@ -1241,11 +1250,12 @@ async def post_data_product(
         data_product_output_kafka_topic = SEMANTIC_TRANSLATOR_SOURCE_TOPIC + "-" + data_product["name"]
         data_product["details"]["pre_translation_output_kafka_topic"] = SEMANTIC_TRANSLATOR_SOURCE_TOPIC + "-" + data_product["name"]
         data_product["details"]["post_translation_output_kafka_topic"] = KAFKA_TOPIC
+        translation_enabled = True
 
     if isinstance(data_source.details, BatchDataSource):
         data_product = onboard_batch_data_product(data_source, mappings_file, mappings_content, data_product_output_kafka_topic, data_product)
     elif isinstance(data_source.details, StreamingDataSource):
-        data_product = onboard_streaming_data_product(data_source, mappings_content, data_product_output_kafka_topic, data_product)
+        data_product = onboard_streaming_data_product(data_source, mappings_content, data_product_output_kafka_topic, translation_enabled, data_product)
 
     await mappings_file.close()
 
