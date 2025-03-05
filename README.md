@@ -107,8 +107,8 @@ Streaming Data Products are generated in real-time as data flows continuously fr
 - **Password (Optional)**: Password that must be used for connecting with the MQTT broker.
 
 ## Current versions:
-- **Data Product Manager application**: 3.3.0 (February 25th, 2025).
-- **Dockerfile**: 3.3.0 (February 25th, 2025).
+- **Data Product Manager application**: 3.3.1 (March 5th, 2025).
+- **Dockerfile**: 3.3.1 (March 5th, 2025).
 
 ## Data Product Manager Deployment
 
@@ -215,11 +215,11 @@ curl -X 'POST' 'http://localhost:<port>/dataProducts' \
             "file_path": "URI of the data file"
          }
       }' \
-   # Mappings file is mandatory. Extension can be RML or YARRRML.
+   # Mappings file is mandatory. Extension can be RML or YAML (for YARRRML).
    -F 'mappings_file=@path_to_mappings_file'
-   # Translation file from source ontology to central ontology is optional. Extension must always be XML.
+   # Translation file from source ontology to central ontology is optional. Extension must always be RDF or XML.
    -F 'translation_source_to_central_file=@path_to_translation_source_to_central_file'
-   # Translation file from central ontology to target ontology is optional. Extension must always be XML.
+   # Translation file from central ontology to target ontology is optional. Extension must always be RDF or XML.
    -F 'translation_central_to_target_file=@path_to_translation_central_to_target_file'
 ```
 
@@ -254,7 +254,7 @@ Once done, click on `Execute` to onboard the Data Product.
 When sending an HTTP POST request, use the following command as template:
 
 ```shell
-curl -X 'POST' 'http://localhost:<port>/dataProducts' \
+curl -X 'POST' 'http://<host>:<port>/dataProducts' \
    -H 'accept: application/json' \
    -H 'Content-Type: multipart/form-data' \
    -F 'data_source={
@@ -273,11 +273,11 @@ curl -X 'POST' 'http://localhost:<port>/dataProducts' \
             "db_url": "URL of the database"
          }
       }' \
-   # Mappings file is mandatory. Extension can be RML or YARRRML.
+   # Mappings file is mandatory. Extension can be RML or YAML (for YARRRML).
    -F 'mappings_file=@path_to_mappings_file'
-   # Translation file from source ontology to central ontology is optional. Extension must always be XML.
+   # Translation file from source ontology to central ontology is optional. Extension must always be RDF or XML.
    -F 'translation_source_to_central_file=@path_to_translation_source_to_central_file'
-   # Translation file from central ontology to target ontology is optional. Extension must always be XML.
+   # Translation file from central ontology to target ontology is optional. Extension must always be RDF or XML.
    -F 'translation_central_to_target_file=@path_to_translation_central_to_target_file'
 ```
 
@@ -316,7 +316,7 @@ Once done, click on `Execute` to onboard the Data Product.
 When sending an HTTP POST request, use the following command as template:
 
 ```shell
-curl -X 'POST' 'http://localhost:<port>/dataProducts' \
+curl -X 'POST' 'http://<host>:<port>/dataProducts' \
    -H 'accept: application/json' \
    -H 'Content-Type: multipart/form-data' \
    -F 'data_source={
@@ -338,11 +338,11 @@ curl -X 'POST' 'http://localhost:<port>/dataProducts' \
             "group_id": "(OPTIONAL) Group ID property that must be used for the communication with the Kafka broker."
          }
       }' \
-   # Mappings file is mandatory. Extension must always RML (CARML mappings).
+   # Mappings file is mandatory. Extension must always be CARML.
    -F 'mappings_file=@path_to_mappings_file'
-   # Translation file from source ontology to central ontology is optional. Extension must always be XML.
+   # Translation file from source ontology to central ontology is optional. Extension must always be RDF or XML.
    -F 'translation_source_to_central_file=@path_to_translation_source_to_central_file'
-   # Translation file from central ontology to target ontology is optional. Extension must always be XML.
+   # Translation file from central ontology to target ontology is optional. Extension must always be RDF or XML.
    -F 'translation_central_to_target_file=@path_to_translation_central_to_target_file'
 ```
 
@@ -384,7 +384,7 @@ Once done, click on `Execute` to onboard the Data Product.
 When sending an HTTP POST request, use the following command as template:
 
 ```shell
-curl -X 'POST' 'http://localhost:<port>/dataProducts' \
+curl -X 'POST' 'http://<host>:<port>/dataProducts' \
    -H 'accept: application/json' \
    -H 'Content-Type: multipart/form-data' \
    -F 'data_source={
@@ -409,11 +409,11 @@ curl -X 'POST' 'http://localhost:<port>/dataProducts' \
             "password": "(OPTIONAL) Password that must be used for connecting with the MQTT broker."
          }
       }' \
-   # Mappings file is mandatory. Extension must always RML (CARML mappings).
+   # Mappings file is mandatory. Extension must always be CARML.
    -F 'mappings_file=@path_to_mappings_file'
-   # Translation file from source ontology to central ontology is optional. Extension must always be XML.
+   # Translation file from source ontology to central ontology is optional. Extension must always be RDF or XML.
    -F 'translation_source_to_central_file=@path_to_translation_source_to_central_file'
-   # Translation file from central ontology to target ontology is optional. Extension must always be XML.
+   # Translation file from central ontology to target ontology is optional. Extension must always be RDF or XML.
    -F 'translation_central_to_target_file=@path_to_translation_central_to_target_file'
 ```
 
@@ -429,7 +429,7 @@ This method returns a list with details of all existing Data Products.
 It can be executed using Swagger UI or by sending the following HTTP GET request:
 
 ```shell
-curl -X 'GET' 'http://localhost:<port>/dataProducts' \
+curl -X 'GET' 'http://<host>:<port>/dataProducts' \
    -H 'accept: application/json'
 ```
 
@@ -439,7 +439,7 @@ This method returns the details of an existing Data Product which ID is passed a
 It can be executed using Swagger UI or by sending the following HTTP GET request:
 
 ```shell
-curl -X 'GET' 'http://localhost:<port>/dataProducts/{data_product_id}' \
+curl -X 'GET' 'http://<host>:<port>/dataProducts/{data_product_id}' \
    -H 'accept: application/json'
 ```
 
@@ -455,7 +455,7 @@ This method deletes all existing Data Products.
 It can be executed using Swagger UI or by sending the following HTTP DELETE request:
 
 ```shell
-curl -X 'DELETE' 'http://localhost:<port>/dataProducts'
+curl -X 'DELETE' 'http://<host>:<port>/dataProducts'
 ```
 
 #### 3.2 Delete an existing Data Product
@@ -464,7 +464,7 @@ This method deletes only the Data Product which ID is passed as parameter.
 It can be executed using Swagger UI or by sending the following HTTP DELETE request:
 
 ```shell
-curl -X 'DELETE' 'http://localhost:<port>/dataProducts/{data_product_id}'
+curl -X 'DELETE' 'http://<host>:<port>/dataProducts/{data_product_id}'
 ```
 
 Replace `{data_product_id}` with the Data Product ID that was returned during the onboarding process.

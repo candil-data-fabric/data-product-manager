@@ -1,5 +1,5 @@
 __name__ = "Data Product Manager"
-__version__ = "3.3.0"
+__version__ = "3.3.1"
 __author__ = [
     "Lucía Cabanillas Rodríguez",
     "David Martínez García"
@@ -885,7 +885,7 @@ def create_alignment(translation_rules: bytes) -> dict:
             "accept": "application/json",
             "Content-Type": "application/xml"
         },
-        data = translation_rules.decode("utf-8")
+        data = translation_rules
     )
     if response.status_code == status.HTTP_201_CREATED:
         alignment_name = response.json()["info"]["name"]
