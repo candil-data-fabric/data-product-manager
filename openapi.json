@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
       "title": "Data Product Manager - REST API",
-      "version": "3.3.2"
+      "version": "3.3.3"
     },
     "paths": {
       "/dataProducts": {

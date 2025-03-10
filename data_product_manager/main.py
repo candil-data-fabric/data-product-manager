@@ -1,5 +1,5 @@
 __name__ = "Data Product Manager"
-__version__ = "3.3.2"
+__version__ = "3.3.3"
 __author__ = [
     "Lucía Cabanillas Rodríguez",
     "David Martínez García"
@@ -646,7 +646,8 @@ def onboard_batch_data_product(data_source: DataSource, mappings_file: UploadFil
             # Check if freshness schedule format is valid (crontab/cronjob format).
             croniter(data_source.details.freshness)
         except ValueError:
-            raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = "Invalid crontab/cronjob format for freshness.")
+            raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,
+                                detail = "Invalid crontab/cronjob format for freshness.")
 
     configmap_mappings_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_product["name"] + "-" + "configmap-mappings"
     configmap_config_name = "data-fabric" + "-" + MORPH_RELEASE_NAME + "-" + data_product["name"] + "-" + "configmap-config"
@@ -745,7 +746,12 @@ def onboard_streaming_data_product(data_source: DataSource, mappings_content: by
     body["metadata"]["mapping"] = {}
     body["metadata"]["mapping"]["name"] = "Mappings"
     body["metadata"]["mapping"]["author"] = "Data Product Manager"
-    body["metadata"]["mapping"]["inputFormat"] = data_source.details.input_format
+    if (data_source.details.input_format.upper() not in ["XML", "JSON", "CSV"]):
+        logger.info("Exception while trying to onboard a new streaming data product.")
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST,
+                            detail = "Data source input format must be XML, JSON or CSV. Got: " + data_source.details.input_format.upper())
+    else:
+        body["metadata"]["mapping"]["inputFormat"] = data_source.details.input_format.upper()
     if (translation_enabled == False):
         body["metadata"]["mapping"]["outputFormat"] = SEMANTIC_ANNOTATOR_OUTPUT_FORMAT
     else:
@@ -758,8 +764,8 @@ def onboard_streaming_data_product(data_source: DataSource, mappings_content: by
     if isinstance(data_source.details, MqttDataSource):
         body["settings"]["inputTopicSettings"]["brokerType"] = "MQTT"
         body["settings"]["inputTopicSettings"]["mqttSettings"] = {}
-        body["settings"]["inputTopicSettings"]["mqttSettings"]["protocol"] = data_source.details.protocol
-        body["settings"]["inputTopicSettings"]["mqttSettings"]["host"] = data_source.details.host
+        body["settings"]["inputTopicSettings"]["mqttSettings"]["protocol"] = data_source.details.protocol.lower()
+        body["settings"]["inputTopicSettings"]["mqttSettings"]["host"] = data_source.details.host.lower()
         body["settings"]["inputTopicSettings"]["mqttSettings"]["port"] = data_source.details.port
         if data_source.details.client_id is not None:
             body["settings"]["inputTopicSettings"]["mqttSettings"]["clientId"] = data_source.details.client_id
@@ -770,7 +776,7 @@ def onboard_streaming_data_product(data_source: DataSource, mappings_content: by
     if isinstance(data_source.details, KafkaDataSource):
         body["settings"]["inputTopicSettings"]["brokerType"] = "KAFKA"
         body["settings"]["inputTopicSettings"]["kafkaSettings"] = {}
-        body["settings"]["inputTopicSettings"]["kafkaSettings"]["host"] = data_source.details.host
+        body["settings"]["inputTopicSettings"]["kafkaSettings"]["host"] = data_source.details.host.lower()
         body["settings"]["inputTopicSettings"]["kafkaSettings"]["port"] = data_source.details.port
         if data_source.details.group_id is not None:
             body["settings"]["inputTopicSettings"]["kafkaSettings"]["groupId"] = data_source.details.group_id
@@ -1157,7 +1163,7 @@ async def post_data_product(
     if data_source.details.owner is not None:
         data_product["owner"] = data_source.details.owner
     else:
-        data_product["owner"] = "Data Product Manager"
+        data_product["owner"] = "default"
     if data_source.details.glossary_terms is not None:
         data_product["glossary_terms"] = data_source.details.glossary_terms
     else:
