@@ -107,8 +107,8 @@ Streaming Data Products are generated in real-time as data flows continuously fr
 - **Password (Optional)**: Password that must be used for connecting with the MQTT broker.
 
 ## Current versions:
-- **Data Product Manager application**: 3.3.2 (March 6th, 2025).
-- **Dockerfile**: 3.3.2 (March 6th, 2025).
+- **Data Product Manager application**: 3.3.3 (March 10th, 2025).
+- **Dockerfile**: 3.3.3 (March 10th, 2025).
 
 ## Data Product Manager Deployment
 

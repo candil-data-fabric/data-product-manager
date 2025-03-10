@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "data-product-manager"
-version = "3.3.2"
+version = "3.3.3"
 description = "Data Product Manager component of the Data Fabric"
 authors = ["Lucía Cabanillas Rodríguez, David Martínez García"]
 readme = "README.md"
