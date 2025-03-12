@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ex:bookstore xmlns:ex="http://www.example.com/books/1.0/">
-    <ex:book category="children">
-        <ex:title lang="en">Harry Potter</ex:title>
-        <ex:author>J K. Rowling</ex:author>
-        <ex:year>2005</ex:year>
-        <ex:price>29.99</ex:price>
-    </ex:book>
-</ex:bookstore>

@@ -2,6 +2,10 @@
 
 The Data Product Manager plays a pivotal role in the Data Fabric, serving as the orchestrator for seamless data product onboarding. This component efficiently manages the integration of new data products, ensuring a coherent and standardized process.
 
+## Current versions:
+- **Data Product Manager application**: 3.3.3 (March 10th, 2025).
+- **Dockerfile**: 3.3.3 (March 10th, 2025).
+
 ## Data Product Definition
 
 The data product is defined as the combination of the following metadata and artifacts:
@@ -106,10 +110,6 @@ Streaming Data Products are generated in real-time as data flows continuously fr
 
 - **Password (Optional)**: Password that must be used for connecting with the MQTT broker.
 
-## Current versions:
-- **Data Product Manager application**: 3.3.3 (March 10th, 2025).
-- **Dockerfile**: 3.3.3 (March 10th, 2025).
-
 ## Data Product Manager Deployment
 
 The Data Product Manager is intended to be deployed by installing a Helm Chart.
@@ -120,16 +120,18 @@ This deployment, inclusive of coordinating computing resources like Kubernetes, 
 
 When creating batch data products, the Data Product Manager will orchestrate the deployment of Morph-KGC in a Kubernetes cluster using Helm Controller.
 
-For further details, the API documentation of the Data Product Manager can be found at:
-
-- `http://<host>:<port>/docs`
-- `http://<host>:<port>/redoc`
-
-To check the host and port of the Data Product Manager API, issue the following command after the deployment:
+To check the host and port of the Data Product Manager, issue the following command after the deployment:
 
 ```bash
-$ kubectl get all
+$ kubectl get services
 ```
+
+By default, the Data Product Manager will be reachable through a NodePort at `localhost:31483` when deployed in a local Kubernetes cluster.
+
+For further details, the API documentation of the Data Product Manager will be accessible at:
+
+- **Swagger UI**: `http://localhost:31483/docs`
+- **ReDoc**: `http://localhost:31483/redoc`
 
 ### Environmental variables
 
@@ -165,7 +167,7 @@ When installing the Helm Chart, upgrade it with a custom `myvalues.yaml` file wh
 
 ### 1. Onboarding Data Products
 
-The onboarding process can be done either using the Swagger UI or by sending HTTP POST requests.
+The onboarding process can be done either using Swagger or by sending HTTP POST requests (via `cURL` or `Postman`).
 
 #### 1.1 Batch Data Products - Data Files
 
@@ -196,31 +198,30 @@ Once done, click on `Execute` to onboard the Data Product.
 When sending an HTTP POST request, use the following command as template:
 
 ```shell
-curl -X 'POST' 'http://localhost:<port>/dataProducts' \
-   -H 'accept: application/json' \
-   -H 'Content-Type: multipart/form-data' \
-   -F 'data_source={
-         "details": {
-            "name": "Data Product Name",
-            "description": "Data Product Description",
-            "owner": "Data Product Owner URI",
-            "glossary_terms": [
-               "Term 1 URI", "Term 2 URI", "Term 3 URI", "Term N URI"
+curl --location 'http://localhost:31483/dataProducts' \
+--header 'accept: application/json' \
+--form 'data_source="{
+         \"details\": {
+            \"name\": \"Data Product Name\",
+            \"description\": \"Data Product Description\",
+            \"owner\": \"Data Product Owner URI\",
+            \"glossary_terms\": [
+               \"Term 1 URI\", \"Term 2 URI\", \"Term 3 URI\", \"Term N URI\"
             ],
-            "tags": [
-               "Tag 1", "Tag 2", "Tag 3", "Tag N"
+            \"tags\": [
+               \"Tag 1\", \"Tag 2\", \"Tag 3\", \"Tag N\"
             ],
-            "freshness": "Freshness (in crontab/cronjob format)",
-            "data_source_type": "BATCH_FILE",
-            "file_path": "URI of the data file"
+            \"freshness\": \"Freshness (in crontab/cronjob format)\",
+            \"data_source_type\": \"BATCH_FILE\",
+            \"file_path\": \"URI of the data file\"
          }
-      }' \
-   # Mappings file is mandatory. Extension can be RML or YAML (for YARRRML).
-   -F 'mappings_file=@path_to_mappings_file'
-   # Translation file from source ontology to central ontology is optional. Extension must always be RDF or XML.
-   -F 'translation_source_to_central_file=@path_to_translation_source_to_central_file'
-   # Translation file from central ontology to target ontology is optional. Extension must always be RDF or XML.
-   -F 'translation_central_to_target_file=@path_to_translation_central_to_target_file'
+      }"' \
+# Mappings file is mandatory. Extension can be RML or YAML (for YARRRML).
+--form 'mappings_file=@"path_to_mappings_file"' \
+# Translation file from source ontology to central ontology is optional. Extension must always be RDF or XML.
+--form 'translation_source_to_central_file=@"path_to_source_to_central_translation_file"' \
+# Translation file from central ontology to target ontology is optional. Extension must always be RDF or XML.
+--form 'translation_central_to_target_file=@"path_to_central_to_target_translation_file"'
 ```
 
 Once the onboarding has completed, a JSON object with details about the Data Product will be returned in response.
@@ -254,31 +255,30 @@ Once done, click on `Execute` to onboard the Data Product.
 When sending an HTTP POST request, use the following command as template:
 
 ```shell
-curl -X 'POST' 'http://<host>:<port>/dataProducts' \
-   -H 'accept: application/json' \
-   -H 'Content-Type: multipart/form-data' \
-   -F 'data_source={
-         "details": {
-            "name": "Data Product Name",
-            "description": "Data Product Description",
-            "owner": "Data Product Owner URI",
-            "glossary_terms": [
-               "Term 1 URI", "Term 2 URI", "Term 3 URI", "Term N URI"
+curl --location 'http://localhost:31483/dataProducts' \
+--header 'accept: application/json' \
+--form 'data_source="{
+         \"details\": {
+            \"name\": \"Data Product Name\",
+            \"description\": \"Data Product Description\",
+            \"owner\": \"Data Product Owner URI\",
+            \"glossary_terms\": [
+               \"Term 1 URI\", \"Term 2 URI\", \"Term 3 URI\", \"Term N URI\"
             ],
-            "tags": [
-               "Tag 1", "Tag 2", "Tag 3", "Tag N"
+            \"tags\": [
+               \"Tag 1\", \"Tag 2\", \"Tag 3\", \"Tag N\"
             ],
-            "freshness": "Freshness (in crontab/cronjob format)",
-            "data_source_type": "BATCH_RELATIONAL_DATABASE",
-            "db_url": "URL of the database"
+            \"freshness\": \"Freshness (in crontab/cronjob format)\",
+            \"data_source_type\": \"BATCH_RELATIONAL_DATABASE\",
+            \"db_url\": \"URL of the database\"
          }
-      }' \
-   # Mappings file is mandatory. Extension can be RML or YAML (for YARRRML).
-   -F 'mappings_file=@path_to_mappings_file'
-   # Translation file from source ontology to central ontology is optional. Extension must always be RDF or XML.
-   -F 'translation_source_to_central_file=@path_to_translation_source_to_central_file'
-   # Translation file from central ontology to target ontology is optional. Extension must always be RDF or XML.
-   -F 'translation_central_to_target_file=@path_to_translation_central_to_target_file'
+      }"' \
+# Mappings file is mandatory. Extension can be RML or YAML (for YARRRML).
+--form 'mappings_file=@"path_to_mappings_file"' \
+# Translation file from source ontology to central ontology is optional. Extension must always be RDF or XML.
+--form 'translation_source_to_central_file=@"path_to_source_to_central_translation_file"' \
+# Translation file from central ontology to target ontology is optional. Extension must always be RDF or XML.
+--form 'translation_central_to_target_file=@"path_to_central_to_target_translation_file"'
 ```
 
 Once the onboarding has completed, a JSON object with details about the Data Product will be returned in response.
@@ -316,34 +316,33 @@ Once done, click on `Execute` to onboard the Data Product.
 When sending an HTTP POST request, use the following command as template:
 
 ```shell
-curl -X 'POST' 'http://<host>:<port>/dataProducts' \
-   -H 'accept: application/json' \
-   -H 'Content-Type: multipart/form-data' \
-   -F 'data_source={
-         "details": {
-            "name": "Data Product Name",
-            "description": "Data Product Description",
-            "owner": "Data Product Owner URI",
-            "glossary_terms": [
-               "Term 1 URI", "Term 2 URI", "Term 3 URI", "Term N URI"
+curl --location 'http://localhost:31483/dataProducts' \
+--header 'accept: application/json' \
+--form 'data_source="{
+         \"details\": {
+            \"name\": \"Data Product Name\",
+            \"description\": \"Data Product Description\",
+            \"owner\": \"Data Product Owner URI\",
+            \"glossary_terms\": [
+               \"Term 1 URI\", \"Term 2 URI\", \"Term 3 URI\", \"Term N URI\"
             ],
-            "tags": [
-               "Tag 1", "Tag 2", "Tag 3", "Tag N"
+            \"tags\": [
+               \"Tag 1\", \"Tag 2\", \"Tag 3\", \"Tag N\"
             ],
-            "input_format": "Expected valid values are XML, JSON or CSV",
-            "input_topic": "input-topic",
-            "data_source_type": "STREAMING_KAFKA",
-            "host": "IP or FQDN where the Kafka broker is reachable",
-            "port": "Port number where the Kafka broker is reachable (integer, without double quotes)",
-            "group_id": "(OPTIONAL) Group ID property that must be used for the communication with the Kafka broker."
+            \"input_format\": \"Expected valid values are XML, JSON or CSV\",
+            \"input_topic\": \"input-topic\",
+            \"data_source_type\": \"STREAMING_KAFKA\",
+            \"host\": \"IP or FQDN where the Kafka broker is reachable\",
+            \"port\": Port number where the Kafka broker is reachable (integer),
+            \"group_id\": \"(OPTIONAL) Group ID property that must be used for the communication with the Kafka broker.\"
          }
-      }' \
-   # Mappings file is mandatory. Extension must always be CARML.
-   -F 'mappings_file=@path_to_mappings_file'
-   # Translation file from source ontology to central ontology is optional. Extension must always be RDF or XML.
-   -F 'translation_source_to_central_file=@path_to_translation_source_to_central_file'
-   # Translation file from central ontology to target ontology is optional. Extension must always be RDF or XML.
-   -F 'translation_central_to_target_file=@path_to_translation_central_to_target_file'
+      }"' \
+# Mappings file is mandatory. Extension must always be CARML.
+--form 'mappings_file=@"path_to_mappings_file"' \
+# Translation file from source ontology to central ontology is optional. Extension must always be RDF or XML.
+--form 'translation_source_to_central_file=@"path_to_source_to_central_translation_file"' \
+# Translation file from central ontology to target ontology is optional. Extension must always be RDF or XML.
+--form 'translation_central_to_target_file=@"path_to_central_to_target_translation_file"'
 ```
 
 Once the onboarding has completed, a JSON object with details about the Data Product will be returned in response.
@@ -384,37 +383,36 @@ Once done, click on `Execute` to onboard the Data Product.
 When sending an HTTP POST request, use the following command as template:
 
 ```shell
-curl -X 'POST' 'http://<host>:<port>/dataProducts' \
-   -H 'accept: application/json' \
-   -H 'Content-Type: multipart/form-data' \
-   -F 'data_source={
-         "details": {
-            "name": "Data Product Name",
-            "description": "Data Product Description",
-            "owner": "Data Product Owner URI",
-            "glossary_terms": [
-               "Term 1 URI", "Term 2 URI", "Term 3 URI", "Term N URI"
+curl --location 'http://localhost:31483/dataProducts' \
+--header 'accept: application/json' \
+--form 'data_source={
+         \"details\": {
+            \"name\": \"Data Product Name\",
+            \"description\": \"Data Product Description\",
+            \"owner\": \"Data Product Owner URI\",
+            \"glossary_terms\": [
+               \"Term 1 URI\", \"Term 2 URI\", \"Term 3 URI\", \"Term N URI\"
             ],
-            "tags": [
-               "Tag 1", "Tag 2", "Tag 3", "Tag N"
+            \"tags\": [
+               \"Tag 1\", \"Tag 2\", \"Tag 3\", \"Tag N\"
             ],
-            "input_format": "Expected valid values are XML, JSON or CSV",
-            "input_topic": "input/topic",
-            "data_source_type": "STREAMING_MQTT",
-            "host": "IP or FQDN where the MQTT broker is reachable",
-            "port": "Port number where the MQTT broker is reachable (integer, without double quotes)",
-            "protocol": "Protocol that must be used for the communication with the MQTT broker. Expected values are tcp or udp",
-            "client_id": "(OPTIONAL) Client ID property that must be used for the communication with the MQTT broker.",
-            "user": "(OPTIONAL) Username that must be used for connecting with the MQTT broker.",
-            "password": "(OPTIONAL) Password that must be used for connecting with the MQTT broker."
+            \"input_format\": \"Expected valid values are XML, JSON or CSV\",
+            \"input_topic\": \"input/topic\",
+            \"data_source_type\": \"STREAMING_MQTT\",
+            \"host\": \"IP or FQDN where the MQTT broker is reachable\",
+            \"port\": Port number where the MQTT broker is reachable (integer),
+            \"protocol\": \"Protocol that must be used for the communication with the MQTT broker. Expected values are tcp or udp\",
+            \"client_id\": \"(OPTIONAL) Client ID property that must be used for the communication with the MQTT broker.\",
+            \"user\": \"(OPTIONAL) Username that must be used for connecting with the MQTT broker.\",
+            \"password\": \"(OPTIONAL) Password that must be used for connecting with the MQTT broker.\"
          }
-      }' \
-   # Mappings file is mandatory. Extension must always be CARML.
-   -F 'mappings_file=@path_to_mappings_file'
-   # Translation file from source ontology to central ontology is optional. Extension must always be RDF or XML.
-   -F 'translation_source_to_central_file=@path_to_translation_source_to_central_file'
-   # Translation file from central ontology to target ontology is optional. Extension must always be RDF or XML.
-   -F 'translation_central_to_target_file=@path_to_translation_central_to_target_file'
+      }"' \
+# Mappings file is mandatory. Extension must always be CARML.
+--form 'mappings_file=@"path_to_mappings_file"' \
+# Translation file from source ontology to central ontology is optional. Extension must always be RDF or XML.
+--form 'translation_source_to_central_file=@"path_to_source_to_central_translation_file"' \
+# Translation file from central ontology to target ontology is optional. Extension must always be RDF or XML.
+--form 'translation_central_to_target_file=@"path_to_central_to_target_translation_file"'
 ```
 
 Once the onboarding has completed, a JSON object with details about the Data Product will be returned in response.
@@ -429,8 +427,8 @@ This method returns a list with details of all existing Data Products.
 It can be executed using Swagger UI or by sending the following HTTP GET request:
 
 ```shell
-curl -X 'GET' 'http://<host>:<port>/dataProducts' \
-   -H 'accept: application/json'
+curl -X 'GET' 'http://localhost:31483/dataProducts' \
+--header 'accept: application/json'
 ```
 
 #### 2.2 Read an existing Data Product
@@ -439,8 +437,8 @@ This method returns the details of an existing Data Product which ID is passed a
 It can be executed using Swagger UI or by sending the following HTTP GET request:
 
 ```shell
-curl -X 'GET' 'http://<host>:<port>/dataProducts/{data_product_id}' \
-   -H 'accept: application/json'
+curl -X 'GET' 'http://localhost:31483/dataProducts/{data_product_id}' \
+--header 'accept: application/json'
 ```
 
 Replace `{data_product_id}` with the Data Product ID that was returned during the onboarding process.
@@ -455,7 +453,7 @@ This method deletes all existing Data Products.
 It can be executed using Swagger UI or by sending the following HTTP DELETE request:
 
 ```shell
-curl -X 'DELETE' 'http://<host>:<port>/dataProducts'
+curl -X 'DELETE' 'http://localhost:31483/dataProducts'
 ```
 
 #### 3.2 Delete an existing Data Product
@@ -464,7 +462,7 @@ This method deletes only the Data Product which ID is passed as parameter.
 It can be executed using Swagger UI or by sending the following HTTP DELETE request:
 
 ```shell
-curl -X 'DELETE' 'http://<host>:<port>/dataProducts/{data_product_id}'
+curl -X 'DELETE' 'http://localhost:31483/dataProducts/{data_product_id}'
 ```
 
 Replace `{data_product_id}` with the Data Product ID that was returned during the onboarding process.
@@ -474,7 +472,6 @@ Replace `{data_product_id}` with the Data Product ID that was returned during th
 - Telefónica I+D (TID): Ignacio Domínguez Martínez-Casanueva and Lucía Cabanillas Rodríguez.
 
 - Universidad Politécnica de Madrid (UPM): Luis Bellido Triana and David Martínez García.
-
 
 ## Acknowledgements
 
