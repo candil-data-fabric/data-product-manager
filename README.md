@@ -472,3 +472,11 @@ Replace `{data_product_id}` with the Data Product ID that was returned during th
 - Telefónica I+D (TID): Ignacio Domínguez Martínez-Casanueva and Lucía Cabanillas Rodríguez.
 
 - Universidad Politécnica de Madrid (UPM): Luis Bellido Triana and David Martínez García.
+
+## Acknowledgements
+
+This work was partially supported by the following projects:
+
+- **UNICO 5G I+D 6G-DATADRIVEN**: Redes de próxima generación (B5G y 6G) impulsadas por datos para la fabricación sostenible y la respuesta a emergencias. Ministerio de Asuntos Económicos y Transformación Digital. European Union NextGenerationEU.
+
+![UNICO](./images/ack-logo.png)
